@@ -61,7 +61,13 @@ class DaoMetaClass(type):
     """
 
     def __new__(cls, name, bases, attrs):
-        """"""
+        """
+
+        :param name:
+        :param bases:
+        :param attrs:
+        :return:
+        """
         if name == "BaseDao":
             return type.__new__(cls, name, bases, attrs)
         cls.db = attrs.get('__db__')
@@ -79,7 +85,14 @@ class DaoMetaClass(type):
         """
         return cls.__mappings__[item]
 
-    def query(cls, query, pager, sorter):
+    async def query(cls, query, pager, sorter):
+        """
+        通用查询
+        :param query:
+        :param pager:
+        :param sorter:
+        :return:
+        """
         table = cls.db[cls.tablename]
         sql = select([table])
         if query:
@@ -122,11 +135,17 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = cls.db.execute(sql)
-        return res.fetchall()
+        res = await cls.db.execute(sql)
+        return await res.fetchall()
 
     async def insert(cls, tx, args):
-        pass
+        """
+        通用插入
+        :param tx:
+        :param args:
+        :return:
+        """
+        table = cls.db[cls.tablename]
 
 
 class BaseDao(metaclass=DaoMetaClass):

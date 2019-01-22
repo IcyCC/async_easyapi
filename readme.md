@@ -44,7 +44,7 @@ await UserDao.select(UserDao._c.id  > 10) # 查2
 事务操作
 
 ```python3
-async with get_tx() as tx:
+async with get_tx(my_db) as tx:
 	XxxDao.get(tx=tx)
     XxxDao.insert(tx=tx,xxx)
 ```

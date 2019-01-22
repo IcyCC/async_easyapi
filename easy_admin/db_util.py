@@ -1,22 +1,24 @@
 from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy_aio import ASYNCIO_STRATEGY
 
 
-def get_engine(user, password, host, port, database):
+def get_engine(user: str, password: str, host: str, port: str, database: str):
     print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
-            user=user,
-            password=password,
-            host=host,  # your host
-            port=port,
-            database=database,
-        ))
+        user=user,
+        password=password,
+        host=host,  # your host
+        port=port,
+        database=database,
+    ))
     engine = create_engine(
         'mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
             user=user,
             password=password,
             host=host,  # your host
             port=port,
-            database=database,
-        )
+            database=database
+        ),
+        strategy=ASYNCIO_STRATEGY
     )
     return engine
 
@@ -37,6 +39,10 @@ class MysqlDB(object):
         self._tables = None
 
     def connect(self):
+        """
+        链接数据库 初始化engine
+        :return:
+        """
         self._engine = get_engine(user=self.user, password=self.password, host=self.host, port=self.port,
                                   database=self.database)
         self._metadata = MetaData(self._engine)
@@ -49,6 +55,18 @@ class MysqlDB(object):
     def __getattr__(self, item):
         return self._tables[item]
 
-    def execute(self, sql, *args, **kwargs):
-        conn = self._engine.connect()
-        return conn.execute(sql, *args,**kwargs)
+    async def execute(self, ctx: dict, sql, *args, **kwargs):
+        """
+        执行sql
+        :param ctx:
+        :param sql:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        conn = None
+        if ctx is None:
+            conn = await self._engine.connect()
+        else:
+            conn = ctx.get("connection")
+        return await conn.execute(sql, *args, **kwargs)
