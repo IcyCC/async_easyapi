@@ -31,7 +31,7 @@ dao操作
 ```python3
 
 await UserDao.get(1) # 查id为一的
-await UserDao.put({'name':'a'}) # 修改
+await UserDao.put(id = 1,{'name':'a'}) # 修改
 await UserDao.insert({'name':'1'}) # 修改
 await UserDao.query(query, pager, sorter) # 查
 await UserDao.count(query, pager, sorter)  # 数
