@@ -3,6 +3,29 @@ from sqlalchemy.sql import select, and_, func, between, distinct, text
 from . import MysqlDB, str2hump
 
 
+class Transaction():
+    def __init__(self, db: MysqlDB):
+        self._db = db
+        self._transaction = None
+        self._connect = None
+
+    def __enter__(self):
+        self._connect = self._db.engine().connect()
+        self._transaction = self._connect.begin()
+        return self._connect
+
+    def __exit__(self, type, value, trace):
+        try:
+            self._transaction.commit()
+        except Exception as e:
+            self._transaction.rollback()
+            raise e
+
+
+def get_tx(db: MysqlDB):
+    return Transaction(db)
+
+
 def comm_count(db, table_name, query):
     table = db[table_name]
     sql = select([func.count('*')], from_obj=table)
@@ -101,6 +124,9 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
         res = cls.db.execute(sql)
         return res.fetchall()
+
+    async def insert(cls, tx, args):
+        pass
 
 
 class BaseDao(metaclass=DaoMetaClass):
