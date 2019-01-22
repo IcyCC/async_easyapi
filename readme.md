@@ -53,7 +53,7 @@ controller
 
 ```
 
-class UserController(UserController):
+class UserController(BaseController):
     __dao__ = UserDao
     pass
 ```
