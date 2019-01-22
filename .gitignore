@@ -104,3 +104,5 @@ venv.bak/
 .mypy_cache/
 
 traker_front/node_modules
+
+.idea

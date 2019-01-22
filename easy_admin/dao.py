@@ -3,42 +3,19 @@ from sqlalchemy.sql import select, and_, func, between, distinct, text
 from . import MysqlDB, str2hump
 
 
-def comm_count(db, table_name, query):
-    table = db[table_name]
-    sql = select([func.count('*')], from_obj=table)
-    if query:
-        for k, values in query.items():
-            if not values:
-                continue
-            if k.startswith('_gt_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[4:]) > v)
-            elif k.startswith('_gte_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[5:]) >= v)
-            elif k.startswith('_lt_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[4:]) < v)
-            elif k.startswith('_lte_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[5:]) <= v)
-            elif k.startswith('_like_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
-            else:
-                sql = sql.where(getattr(table.c, k).in_(values))
-
-    res = db.execute(sql)
-    return res.scalar()
-
-
 class DaoMetaClass(type):
     """
         dao的元类 读取 db 和 table信息 生成
     """
 
     def __new__(cls, name, bases, attrs):
-        """"""
+        """
+
+        :param name:
+        :param bases:
+        :param attrs:
+        :return:
+        """
         if name == "BaseDao":
             return type.__new__(cls, name, bases, attrs)
         cls.db = attrs.get('__db__')
@@ -56,7 +33,14 @@ class DaoMetaClass(type):
         """
         return cls.__mappings__[item]
 
-    def query(cls, query, pager, sorter):
+    async def query(cls, query, pager, sorter):
+        """
+        通用查询
+        :param query:
+        :param pager:
+        :param sorter:
+        :return:
+        """
         table = cls.db[cls.tablename]
         sql = select([table])
         if query:
@@ -99,8 +83,8 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = cls.db.execute(sql)
-        return res.fetchall()
+        res = await cls.db.execute(sql)
+        return await res.fetchall()
 
 
 class BaseDao(metaclass=DaoMetaClass):
