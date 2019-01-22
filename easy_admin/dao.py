@@ -18,11 +18,10 @@ class DaoMetaClass(type):
         """
         if name == "BaseDao":
             return type.__new__(cls, name, bases, attrs)
-        cls.db = attrs.get('__db__')
-        if cls.db is None:
+        if attrs.get('__db__') is None:
             raise NotImplementedError("Should have __db__ value.")
 
-        cls.tablename = attrs.get('__tablename_') or str2hump(name[:-3])
+        attrs['__tablename_'] = attrs.get('__tablename_') or str2hump(name[:-3])
         return type.__new__(cls, name, bases, attrs)
 
     def __getattr__(cls, item):
@@ -41,7 +40,7 @@ class DaoMetaClass(type):
         :param sorter:
         :return:
         """
-        table = cls.db[cls.tablename]
+        table = cls.__db__[cls.__tablename_]
         sql = select([table])
         if query:
             for k, values in query.items():
@@ -83,7 +82,7 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = await cls.db.execute(sql)
+        res = await cls.__db__.execute(sql)
         return await res.fetchall()
 
 
