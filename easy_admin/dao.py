@@ -1,5 +1,5 @@
 import functools
-from sqlalchemy.sql import select, and_, func, between, distinct, text
+from sqlalchemy.sql import select, and_, func, between, distinct, text, insert
 from . import MysqlDB, str2hump
 
 
@@ -9,16 +9,16 @@ class Transaction():
         self._transaction = None
         self._connect = None
 
-    def __enter__(self):
-        self._connect = self._db.engine().connect()
-        self._transaction = self._connect.begin()
+    async def __aenter__(self):
+        self._connect = await self._db.engine().connect()
+        self._transaction = await self._connect.begin()
         return self._connect
 
-    def __exit__(self, type, value, trace):
+    async def __aexit__(self, exc_type, exc, tb):
         try:
-            self._transaction.commit()
+            await self._transaction.commit()
         except Exception as e:
-            self._transaction.rollback()
+            await self._transaction.rollback()
             raise e
 
 
@@ -84,7 +84,7 @@ class DaoMetaClass(type):
         """
         return cls.__mappings__[item]
 
-    async def query(cls, query, pager, sorter):
+    async def query(cls, ctx: dict, query, pager, sorter):
         """
         通用查询
         :param query:
@@ -134,10 +134,10 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = await cls.__db__.execute(sql)
+        res = await cls.__db__.execute(ctx, sql)
         return await res.fetchall()
 
-    async def insert(cls, tx, args):
+    async def insert(cls, ctx: dict, data: dict):
         """
         通用插入
         :param tx:
@@ -145,6 +145,45 @@ class DaoMetaClass(type):
         :return:
         """
         table = cls.db[cls.tablename]
+        sql = table.insert().value(**data)
+        res = await cls.__db__.execute(ctx, sql)
+        return res
+
+    async def update(cls, ctx: dict, where_dict: dict, data: dict):
+        """
+        通用修改
+        :param ctx:
+        :param primay_key:
+        :param data:
+        :return:
+        """
+        table = cls.db[cls.tablename]
+        sql = table.update()
+        if where_dict is not None:
+            for key, value in where_dict.items():
+                if hasattr(table.c, key):
+                    sql = sql.where(getattr(table.c, key) == value)
+        sql = sql.value(**data)
+        res = await cls.__db__.execute(ctx, sql)
+        return res
+
+    async def delete(cls, ctx: dict, where_dict: dict, data: dict):
+        """
+        通用删除
+        :param ctx:
+        :param where_didt:
+        :param data:
+        :return:
+        """
+        table = cls.db[cls.tablename]
+        sql = table.delete()
+        if where_dict is not None:
+            for key, value in where_dict.items():
+                if hasattr(table.c, key):
+                    sql = sql.where(getattr(table.c, key) == value)
+        sql = sql.value(**data)
+        res = await cls.__db__.execute(ctx, sql)
+        return res
 
 
 class BaseDao(metaclass=DaoMetaClass):
