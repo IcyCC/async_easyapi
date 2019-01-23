@@ -38,7 +38,7 @@ class MysqlDB(object):
         self._metadata = None
         self._tables = None
 
-    def connect(self):
+    async def connect(self):
         """
         链接数据库 初始化engine
         :return:

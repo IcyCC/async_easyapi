@@ -1,6 +1,6 @@
 class ControllerMetaClass(type):
     def __new__(cls, name, bases, attrs):
-        if BaseController == "":
+        if name == "BaseController":
             return type.__new__(cls, name, bases, attrs)
         if attrs.get('__dao__') is None:
             raise NotImplementedError("Should have __dao__ value.")

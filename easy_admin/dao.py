@@ -45,16 +45,16 @@ class DaoMetaClass(type):
         if attrs.get('__db__') is None:
             raise NotImplementedError("Should have __db__ value.")
 
-        attrs['__tablename_'] = attrs.get('__tablename_') or str2hump(name[:-3])
+        attrs['__tablename__'] = attrs.get('__tablename__') or str2hump(name[:-3])
         return type.__new__(cls, name, bases, attrs)
 
-    def __getattr__(cls, item):
-        """
-        用于Model.Field 方式获取字段
-        :param item:
-        :return:
-        """
-        return cls.__mappings__[item]
+    # def __getattr__(cls, item):
+    #     """
+    #     用于Model.Field 方式获取字段
+    #     :param item:
+    #     :return:
+    #     """
+    #     return cls.__mappings__[item]
 
     def model_to_dao_formatter(cls, data: dict):
         """
@@ -72,7 +72,7 @@ class DaoMetaClass(type):
         """
         return data
 
-    async def query(cls, ctx: dict, query, pager, sorter):
+    async def query(cls, ctx: dict=None, query:dict=None, pager:dict=None, sorter:dict=None):
         """
         通用查询
         :param query:
@@ -80,7 +80,8 @@ class DaoMetaClass(type):
         :param sorter:
         :return:
         """
-        table = cls.__db__[cls.__tablename_]
+        await cls.__db__.connect()
+        table = cls.__db__[cls.__tablename__]
         sql = select([table])
         if query:
             for k, values in query.items():
@@ -104,7 +105,7 @@ class DaoMetaClass(type):
                 else:
                     sql = sql.where(getattr(table.c, k).in_(values))
 
-        if pager:
+        if pager is not None:
             per_page = pager.get('_per_page')
             page = pager.get('_page')
             if per_page:
@@ -122,10 +123,15 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = await cls.__db__.execute(ctx, sql)
-        return await res.fetchall()
+        try:
+            res = await cls.__db__.execute(ctx, sql)
+        except Exception as e:
+            raise e
+        data = await res.fetchall()
+        print(data)
+        return data
 
-    async def insert(cls, ctx: dict, data: dict):
+    async def insert(cls, ctx: dict=None, data: dict=None):
         """
         通用插入
         :param tx:
@@ -134,10 +140,13 @@ class DaoMetaClass(type):
         """
         table = cls.db[cls.tablename]
         sql = table.insert().value(**data)
-        res = await cls.__db__.execute(ctx, sql)
+        try:
+            res = await cls.__db__.execute(ctx, sql)
+        except Exception as e:
+            raise e
         return res
 
-    async def comm_count(cls, query):
+    async def comm_count(cls, query:dict=None):
         table = cls.db[cls.__tablename__]
         sql = select([func.count('*')], from_obj=table)
         if query:
@@ -161,11 +170,13 @@ class DaoMetaClass(type):
                         sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
                 else:
                     sql = sql.where(getattr(table.c, k).in_(values))
-
-        res = cls.__db__.execute(sql)
+        try:
+            res = cls.__db__.execute(sql)
+        except Exception as e:
+            raise e
         return res.scalar()
 
-    async def update(cls, ctx: dict, where_dict: dict, data: dict):
+    async def update(cls, ctx: dict=None, where_dict: dict=None, data: dict=None):
         """
         通用修改
         :param ctx:
@@ -180,10 +191,13 @@ class DaoMetaClass(type):
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
         sql = sql.value(**data)
-        res = await cls.__db__.execute(ctx, sql)
+        try:
+            res = await cls.__db__.execute(ctx, sql)
+        except Exception as e:
+            raise e
         return res
 
-    async def delete(cls, ctx: dict, where_dict: dict, data: dict):
+    async def delete(cls, ctx: dict, where_dict: dict=None, data: dict=None):
         """
         通用删除
         :param ctx:
@@ -198,7 +212,10 @@ class DaoMetaClass(type):
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
         sql = sql.value(**data)
-        res = await cls.__db__.execute(ctx, sql)
+        try:
+            res = await cls.__db__.execute(ctx, sql)
+        except Exception as e:
+            raise e
         return res
 
 
