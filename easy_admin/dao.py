@@ -5,6 +5,58 @@ from .db_util import MysqlDB
 
 
 
+class Transaction():
+    def __init__(self, db: MysqlDB):
+        self._db = db
+        self._transaction = None
+        self._connect = None
+
+    async def __aenter__(self):
+        self._connect = await self._db.engine().connect()
+        self._transaction = await self._connect.begin()
+        return self._connect
+
+    async def __aexit__(self, exc_type, exc, tb):
+        try:
+            await self._transaction.commit()
+        except Exception as e:
+            await self._transaction.rollback()
+            raise e
+
+
+def get_tx(db: MysqlDB):
+    return Transaction(db)
+
+
+def comm_count(db, table_name, query):
+    table = db[table_name]
+    sql = select([func.count('*')], from_obj=table)
+    if query:
+        for k, values in query.items():
+            if not values:
+                continue
+            if k.startswith('_gt_'):
+                for v in values:
+                    sql = sql.where(getattr(table.c, k[4:]) > v)
+            elif k.startswith('_gte_'):
+                for v in values:
+                    sql = sql.where(getattr(table.c, k[5:]) >= v)
+            elif k.startswith('_lt_'):
+                for v in values:
+                    sql = sql.where(getattr(table.c, k[4:]) < v)
+            elif k.startswith('_lte_'):
+                for v in values:
+                    sql = sql.where(getattr(table.c, k[5:]) <= v)
+            elif k.startswith('_like_'):
+                for v in values:
+                    sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
+            else:
+                sql = sql.where(getattr(table.c, k).in_(values))
+
+    res = db.execute(sql)
+    return res.scalar()
+
+
 class DaoMetaClass(type):
     """
         dao的元类 读取 db 和 table信息 生成
@@ -34,7 +86,7 @@ class DaoMetaClass(type):
         """
         return cls.__mappings__[item]
 
-    async def query(cls, query, pager, sorter):
+    async def query(cls, ctx: dict, query, pager, sorter):
         """
         通用查询
         :param query:
@@ -84,8 +136,56 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = await cls.__db__.execute(sql)
+        res = await cls.__db__.execute(ctx, sql)
         return await res.fetchall()
+
+    async def insert(cls, ctx: dict, data: dict):
+        """
+        通用插入
+        :param tx:
+        :param args:
+        :return:
+        """
+        table = cls.db[cls.tablename]
+        sql = table.insert().value(**data)
+        res = await cls.__db__.execute(ctx, sql)
+        return res
+
+    async def update(cls, ctx: dict, where_dict: dict, data: dict):
+        """
+        通用修改
+        :param ctx:
+        :param primay_key:
+        :param data:
+        :return:
+        """
+        table = cls.db[cls.tablename]
+        sql = table.update()
+        if where_dict is not None:
+            for key, value in where_dict.items():
+                if hasattr(table.c, key):
+                    sql = sql.where(getattr(table.c, key) == value)
+        sql = sql.value(**data)
+        res = await cls.__db__.execute(ctx, sql)
+        return res
+
+    async def delete(cls, ctx: dict, where_dict: dict, data: dict):
+        """
+        通用删除
+        :param ctx:
+        :param where_didt:
+        :param data:
+        :return:
+        """
+        table = cls.db[cls.tablename]
+        sql = table.delete()
+        if where_dict is not None:
+            for key, value in where_dict.items():
+                if hasattr(table.c, key):
+                    sql = sql.where(getattr(table.c, key) == value)
+        sql = sql.value(**data)
+        res = await cls.__db__.execute(ctx, sql)
+        return res
 
 
 class BaseDao(metaclass=DaoMetaClass):

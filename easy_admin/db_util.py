@@ -64,9 +64,7 @@ class MysqlDB(object):
         :param kwargs:
         :return:
         """
-        conn = None
-        if ctx is None:
+        conn = ctx.get("connection", None)
+        if conn is None:
             conn = await self._engine.connect()
-        else:
-            conn = ctx.get("connection")
         return await conn.execute(sql, *args, **kwargs)
