@@ -1,27 +1,28 @@
 import asyncio
-import easy_admin
+import async_esayapi
 from quart import Quart, Blueprint
 
 loop = asyncio.get_event_loop()
 
 app = Quart(__name__)
 
-my_db = easy_admin.MysqlDB('root', 'Root!!2018', 'localhost', 3306, 'EDUCATION')
+my_db = async_esayapi.MysqlDB('root', 'Root!!2018', 'localhost', 3306, 'EDUCATION')
 loop.run_until_complete(my_db.connect())
 
-class UserDao(easy_admin.BaseDao):
+
+class UserDao(async_esayapi.BaseDao):
     __db__ = my_db
 
 
-class UserController(easy_admin.BaseController):
+class UserController(async_esayapi.BaseController):
     __dao__ = UserDao
 
 
-class UserHandler(easy_admin.BaseQuartHandler):
+class UserHandler(async_esayapi.BaseQuartHandler):
     __controller__ = UserController
 
 
 app.register_blueprint(UserHandler.__blueprint__)
 
 if __name__ == '__main__':
-        app.run()
+    app.run()
