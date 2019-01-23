@@ -1,6 +1,8 @@
 import functools
 from sqlalchemy.sql import select, and_, func, between, distinct, text
-from . import MysqlDB, str2hump
+from .util import str2hump
+from .db_util import MysqlDB
+
 
 
 class DaoMetaClass(type):
