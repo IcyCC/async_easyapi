@@ -46,7 +46,7 @@ class MysqlDB(object):
         self._engine = get_engine(user=self.user, password=self.password, host=self.host, port=self.port,
                                   database=self.database)
         self._metadata = MetaData(self._engine)
-        self._metadata.reflect(bind=self._engine)
+        self._metadata.reflect(bind=self._engine.sync_engine)
         self._tables = self._metadata.tables
 
     def __getitem__(self, name):
@@ -55,7 +55,7 @@ class MysqlDB(object):
     def __getattr__(self, item):
         return self._tables[item]
 
-    async def execute(self, ctx: dict, sql, *args, **kwargs):
+    async def execute(self, sql, ctx: dict = None, *args, **kwargs, ):
         """
         执行sql
         :param ctx:
@@ -64,7 +64,9 @@ class MysqlDB(object):
         :param kwargs:
         :return:
         """
-        conn = ctx.get("connection", None)
+        conn = None
+        if ctx is not None:
+            conn = ctx.get("connection", None)
         if conn is None:
             conn = await self._engine.connect()
         return await conn.execute(sql, *args, **kwargs)
