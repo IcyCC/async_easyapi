@@ -3,15 +3,15 @@ from quart import Quart, Blueprint
 
 app = Quart(__name__)
 
-my_db = easy_admin.MysqlDB('root', 'Root!!2018', 'localhost', 3306, 'EDUCATION')
+my_db = easy_admin.MysqlDB('root', 'wshwoaini', 'localhost', 3306, 'EDUCATION')
 
 
 class UserDao(easy_admin.BaseDao):
     __db__ = my_db
 
 
-class UserController(object):
-    pass
+class UserController(easy_admin.BaseController):
+    __dao__ = UserDao
 
 
 class UserHandler(easy_admin.BaseQuartHandler):
