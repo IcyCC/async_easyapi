@@ -1,6 +1,7 @@
 import functools
-from sqlalchemy.sql import select, and_, func, between, distinct, text, insert
-from . import MysqlDB, str2hump
+from sqlalchemy.sql import select, and_, func, between, distinct, text
+from .util import str2hump
+from .db_util import MysqlDB
 
 
 class Transaction():
@@ -182,7 +183,7 @@ class DaoMetaClass(type):
         res = await cls.__db__.execute(ctx, sql)
         return res
 
-    async def delete(cls, ctx: dict, where_dict: dict):
+    async def delete(cls, ctx: dict, where_dict: dict, data: dict):
         """
         通用删除
         :param ctx:
@@ -196,6 +197,7 @@ class DaoMetaClass(type):
             for key, value in where_dict.items():
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
+        sql = sql.value(**data)
         res = await cls.__db__.execute(ctx, sql)
         return res
 

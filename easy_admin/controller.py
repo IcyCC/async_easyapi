@@ -16,6 +16,17 @@ class ControllerMetaClass(type):
         data = await cls.__dao__.query(query=query)
         return data[0]
 
+    async def query(cls, filter_dict: dict, pager: dict, sorter: dict):
+        """
+        获取多个资源
+        :param filter_dict:
+        :param pager:
+        :param sorter:
+        :return:
+        """
+        res = await cls.__dao__.query(query=filter_dict, pager=pager, sorter=sorter)
+        return res
+
     async def count(cls, query: dict):
         """
         获取资源总数
@@ -45,15 +56,16 @@ class ControllerMetaClass(type):
         res = await cls.__dao__.update(where_dict=query, data=data)
         return res
 
-    async def delete(cls, id:int):
+    async def delete(cls, id: int):
         """
         删除单个资源
         :param id:
         :return:
         """
-        query = {"id":id}
+        query = {"id": id}
         res = await cls.__dao__.delete(where_dict=query)
         return res
+
 
 class BaseController(metaclass=ControllerMetaClass):
     pass
