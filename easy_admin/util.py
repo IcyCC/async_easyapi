@@ -1,14 +1,17 @@
-def str2hump(text):
-    """
-    驼峰转下划线
-    :param text:
-    :return:
-    """
-    arr = filter(None, text.lower().split('_'))
-    res = ''
-    for i in arr:
-        res = res + i[0].upper() + i[1:]
-    return res
+def str2hump(listx):
+    listy = listx[0]
+    for i in range(1, len(listx)):
+        # listx[i] 直接copy 或 先加'_'再copy
+        if listx[i].isupper() and not listx[i - 1].isupper():  # 加'_',当前为大写，前一个字母为小写
+            listy += '_'
+            listy += listx[i]
+        elif listx[i].isupper() and listx[i - 1].isupper() and listx[i + 1].islower():
+            # 加'_',当前为大写，前一个字母为小写
+            listy += '_'
+            listy += listx[i]
+        else:
+            listy += listx[i]
+    return listy.lower()
 
 
 def default_url_condition(args: dict) -> (dict, dict, dict):

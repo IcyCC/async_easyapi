@@ -1,7 +1,7 @@
 import asyncio
 import quart
 import datetime
-from . import str2hump, default_url_condition
+from easy_admin import str2hump, default_url_condition
 
 
 class QuartHandlerMeta(type):
@@ -14,11 +14,12 @@ class QuartHandlerMeta(type):
         :param attrs:
         :return:
         """
-        if name == "BaseDao":
+        if name == "BaseQuartHandler":
             return type.__new__(cls, name, bases, attrs)
 
         attrs['__blueprint__'] = attrs.get('__blueprint__') or quart.Blueprint(name=str2hump(name[:-7]) + 's',
-                                                                               url_prefix=str2hump(name[:-7]) + 's')
+                                                                               import_name=str2hump(name[:-7]) + 's',
+                                                                               url_prefix='/'+str2hump(name[:-7]) + 's')
         attrs['__resource__'] = attrs.get('__resource__') or str2hump(name[:-7])
         attrs['__url_condition__'] = attrs.get('__url_condition__') or default_url_condition
 
@@ -28,7 +29,7 @@ class QuartHandlerMeta(type):
         attrs['__blueprint__'].route(path="/<int:id>", methods=['GET'])(cls.get)
         attrs['__blueprint__'].route(path="/<int:id>", methods=['PUT'])(cls.put)
         attrs['__blueprint__'].route(path="/<int:id>", methods=['DELETE'])(cls.put)
-        attrs['__blueprint__'].route(path="", methods=['POST'])(cls.query_and_post)
+        attrs['__blueprint__'].route(path="/", methods=['POST'])(cls.query_and_post)
 
         return type.__new__(cls, name, bases, attrs)
 
@@ -81,5 +82,5 @@ class QuartHandlerMeta(type):
         return quart.jsonify(code=200, msg='')
 
 
-class QuartHandlerBase(metaclass=QuartHandlerMeta):
+class BaseQuartHandler(metaclass=QuartHandlerMeta):
     pass

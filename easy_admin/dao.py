@@ -1,6 +1,7 @@
 import functools
-from sqlalchemy.sql import select, and_, func, between, distinct, text, insert
-from . import MysqlDB, str2hump
+from sqlalchemy.sql import select, and_, func, between, distinct, text
+from .util import str2hump
+from .db_util import MysqlDB
 
 
 class Transaction():
@@ -24,35 +25,6 @@ class Transaction():
 
 def get_tx(db: MysqlDB):
     return Transaction(db)
-
-
-def comm_count(db, table_name, query):
-    table = db[table_name]
-    sql = select([func.count('*')], from_obj=table)
-    if query:
-        for k, values in query.items():
-            if not values:
-                continue
-            if k.startswith('_gt_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[4:]) > v)
-            elif k.startswith('_gte_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[5:]) >= v)
-            elif k.startswith('_lt_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[4:]) < v)
-            elif k.startswith('_lte_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[5:]) <= v)
-            elif k.startswith('_like_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
-            else:
-                sql = sql.where(getattr(table.c, k).in_(values))
-
-    res = db.execute(sql)
-    return res.scalar()
 
 
 class DaoMetaClass(type):
@@ -83,6 +55,34 @@ class DaoMetaClass(type):
         :return:
         """
         return cls.__mappings__[item]
+
+    def comm_count(cls, ctx: dict, table_name, query):
+        table = cls.__db__[cls.__tablename_]
+        sql = select([func.count('*')], from_obj=table)
+        if query:
+            for k, values in query.items():
+                if not values:
+                    continue
+                if k.startswith('_gt_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[4:]) > v)
+                elif k.startswith('_gte_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[5:]) >= v)
+                elif k.startswith('_lt_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[4:]) < v)
+                elif k.startswith('_lte_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[5:]) <= v)
+                elif k.startswith('_like_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
+                else:
+                    sql = sql.where(getattr(table.c, k).in_(values))
+
+        res = await cls.__db__.execute(ctx, sql)
+        return res.scalar()
 
     async def query(cls, ctx: dict, query, pager, sorter):
         """
