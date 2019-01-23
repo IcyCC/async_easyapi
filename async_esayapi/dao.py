@@ -2,7 +2,7 @@ import functools
 from sqlalchemy.sql import select, and_, func, between, distinct, text
 from .util import str2hump
 from .db_util import MysqlDB
-
+from sqlalchemy.exc import NoSuchColumnError
 
 class Transaction():
     def __init__(self, db: MysqlDB):
@@ -127,6 +127,7 @@ class DaoMetaClass(type):
         :return:
         """
         table = cls.__db__[cls.tablename]
+        data = cls.reformatter(data)
         sql = table.insert().value(**data)
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
         return res
