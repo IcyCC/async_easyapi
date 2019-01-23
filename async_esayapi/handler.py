@@ -2,7 +2,7 @@ import asyncio
 import functools
 import quart
 import datetime
-from easy_admin import str2hump, default_url_condition
+from async_esayapi import str2hump, default_url_condition
 
 
 class QuartHandlerMeta(type):
