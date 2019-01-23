@@ -26,35 +26,6 @@ def get_tx(db: MysqlDB):
     return Transaction(db)
 
 
-def comm_count(db, table_name, query):
-    table = db[table_name]
-    sql = select([func.count('*')], from_obj=table)
-    if query:
-        for k, values in query.items():
-            if not values:
-                continue
-            if k.startswith('_gt_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[4:]) > v)
-            elif k.startswith('_gte_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[5:]) >= v)
-            elif k.startswith('_lt_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[4:]) < v)
-            elif k.startswith('_lte_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[5:]) <= v)
-            elif k.startswith('_like_'):
-                for v in values:
-                    sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
-            else:
-                sql = sql.where(getattr(table.c, k).in_(values))
-
-    res = db.execute(sql)
-    return res.scalar()
-
-
 class DaoMetaClass(type):
     """
         dao的元类 读取 db 和 table信息 生成
@@ -83,6 +54,22 @@ class DaoMetaClass(type):
         :return:
         """
         return cls.__mappings__[item]
+
+    def model_to_dao_formatter(cls, data: dict):
+        """
+        将model数据转换成dao数据
+        :param data:
+        :return:
+        """
+        return data
+
+    def dao_to_model_formatter(cls, data: dict):
+        """
+        将dao数据转换成model数据
+        :param data:
+        :return:
+        """
+        return data
 
     async def query(cls, ctx: dict, query, pager, sorter):
         """
@@ -149,6 +136,34 @@ class DaoMetaClass(type):
         res = await cls.__db__.execute(ctx, sql)
         return res
 
+    async def comm_count(cls, query):
+        table = cls.db[cls.__tablename__]
+        sql = select([func.count('*')], from_obj=table)
+        if query:
+            for k, values in query.items():
+                if not values:
+                    continue
+                if k.startswith('_gt_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[4:]) > v)
+                elif k.startswith('_gte_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[5:]) >= v)
+                elif k.startswith('_lt_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[4:]) < v)
+                elif k.startswith('_lte_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[5:]) <= v)
+                elif k.startswith('_like_'):
+                    for v in values:
+                        sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
+                else:
+                    sql = sql.where(getattr(table.c, k).in_(values))
+
+        res = cls.__db__.execute(sql)
+        return res.scalar()
+
     async def update(cls, ctx: dict, where_dict: dict, data: dict):
         """
         通用修改
@@ -167,7 +182,7 @@ class DaoMetaClass(type):
         res = await cls.__db__.execute(ctx, sql)
         return res
 
-    async def delete(cls, ctx: dict, where_dict: dict, data: dict):
+    async def delete(cls, ctx: dict, where_dict: dict):
         """
         通用删除
         :param ctx:
@@ -181,7 +196,6 @@ class DaoMetaClass(type):
             for key, value in where_dict.items():
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
-        sql = sql.value(**data)
         res = await cls.__db__.execute(ctx, sql)
         return res
 
