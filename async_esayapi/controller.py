@@ -1,3 +1,7 @@
+from async_esayapi.errors import *
+from sqlalchemy.exc import *
+
+
 class ControllerMetaClass(type):
     def __new__(cls, name, bases, attrs):
         if name == "BaseController":
@@ -12,7 +16,7 @@ class ControllerMetaClass(type):
         :param id:
         :return:
         """
-        query = {"id": [id]}
+        query = {"id": id}
         data = await cls.__dao__.query(query=query)
         if not data:
             return None
@@ -44,7 +48,14 @@ class ControllerMetaClass(type):
         :param body:
         :return:
         """
-        res = await cls.__dao__.insert(data=data)
+        if cls.__validator__ is not None:
+            err = cls.__validator__.validate(data)
+            if err is not None:
+                raise BusinessError(code=500, http_code=200, err_info=err)
+        try:
+            res = await cls.__dao__.insert(data=data)
+        except (OperationalError, IntegrityError, DataError) as e:
+            raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     async def update(cls, id: int, data: dict):
@@ -54,8 +65,15 @@ class ControllerMetaClass(type):
         :param data:
         :return:
         """
+        if cls.__validator__ is not None:
+            err = cls.__validator__.validate(data)
+            if err is not None:
+                raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id}
-        res = await cls.__dao__.update(where_dict=query, data=data)
+        try:
+            res = await cls.__dao__.update(where_dict=query, data=data)
+        except (OperationalError, IntegrityError, DataError) as e:
+            raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     async def delete(cls, id: int):
