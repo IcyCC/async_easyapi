@@ -2,7 +2,7 @@ import asyncio
 import functools
 import quart
 import datetime
-from async_esayapi import str2hump, default_url_condition
+from async_esayapi import str2hump, default_url_condition, BusinessError
 
 
 class QuartHandlerMeta(type):
@@ -34,7 +34,10 @@ class QuartHandlerMeta(type):
             :return:
             """
             nonlocal attrs
-            data = await attrs['__controller__'].get(id)
+            try:
+                data = await attrs['__controller__'].get(id)
+            except BusinessError as e:
+                return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
             if not data:
                 return quart.jsonify(**{
                     'msg': '',
@@ -55,7 +58,10 @@ class QuartHandlerMeta(type):
             """
             nonlocal attrs
             body = await quart.request.json
-            await attrs['__controller__'].put(id, body)
+            try:
+                await attrs['__controller__'].put(id, body)
+            except BusinessError as e:
+                return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
             return quart.jsonify(code=200, msg='')
 
         put.__name__ = attrs['__resource__'] + '_name'
@@ -67,9 +73,11 @@ class QuartHandlerMeta(type):
             :return:
             """
             nonlocal attrs
-            await attrs['__controller__'].put(id, {'deleted_at': datetime.datetime.now()})
+            try:
+                await attrs['__controller__'].put(id, {'deleted_at': datetime.datetime.now()})
+            except BusinessError as e:
+                return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
             return quart.jsonify(code=200, msg='')
-
             delete.__name__ = attrs['__resource__'] + '_delete'
 
         async def query_and_post():
@@ -83,8 +91,11 @@ class QuartHandlerMeta(type):
 
             if method == 'GET':
                 query, pager, sorter = attrs['__url_condition__'](body.get("_args"))
-                res, count = await asyncio.gather(attrs['__controller__'].query(query, pager, sorter),
+                try:
+                    res, count = await asyncio.gather(attrs['__controller__'].query(query, pager, sorter),
                                                   attrs['__controller__'].count(query))
+                except BusinessError as e:
+                    return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
                 return quart.jsonify(**{
                     'msg': '',
                     'code': 200,
