@@ -1,7 +1,7 @@
 import abc
 
 
-class Validator(metaclass=abc.ABCMeta):
+class AbcValidator(metaclass=abc.ABCMeta):
 
     @classmethod
     @abc.abstractmethod
