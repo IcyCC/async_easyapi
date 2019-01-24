@@ -1,7 +1,9 @@
 import abc
 
 
-class Validator(metaclass=abc.ABCMeta):
+class AbcValidator(metaclass=abc.ABCMeta):
+
+    @classmethod
     @abc.abstractmethod
-    def validate(self, data):
+    def validate(cls, data):
         pass
