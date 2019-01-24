@@ -1,10 +1,10 @@
-import async_esayapi
+import async_easyapi
 import asyncio
 
-my_db = async_esayapi.MysqlDB('root', 'wshwoaini', 'localhost', 3306, 'EDUCATION')
+my_db = async_easyapi.MysqlDB('root', 'wshwoaini', 'localhost', 3306, 'EDUCATION')
 
 
-class UserDao(async_esayapi.BaseDao):
+class UserDao(async_easyapi.BaseDao):
     __db__ = my_db
     __tablename_ = 'users'
 

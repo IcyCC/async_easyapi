@@ -1,4 +1,4 @@
-from async_esayapi import BusinessError
+from async_easyapi import BusinessError
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 
 
