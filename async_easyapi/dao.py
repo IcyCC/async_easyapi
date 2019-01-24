@@ -4,6 +4,7 @@ from .util import str2hump
 from .db_util import MysqlDB
 from sqlalchemy.exc import NoSuchColumnError
 
+
 class Transaction():
     def __init__(self, db: MysqlDB):
         self._db = db
@@ -178,6 +179,7 @@ class DaoMetaClass(type):
         :return:
         """
         table = cls.__db__[cls.tablename]
+        data = cls.reformatter(data)
         sql = table.update()
         if where_dict is not None:
             for key, value in where_dict.items():
@@ -187,7 +189,7 @@ class DaoMetaClass(type):
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
-    async def delete(cls, ctx: dict, where_dict: dict = None, data: dict = None):
+    async def delete(cls, ctx: dict, where_dict: dict = None):
         """
         通用删除
         :param ctx:
@@ -201,7 +203,6 @@ class DaoMetaClass(type):
             for key, value in where_dict.items():
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
-        sql = sql.value(**data)
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 

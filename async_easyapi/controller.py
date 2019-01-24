@@ -17,7 +17,10 @@ class ControllerMetaClass(type):
         :return:
         """
         query = {"id": id}
-        data = await cls.__dao__.query(query=query)
+        try:
+            data = await cls.__dao__.query(query=query)
+        except (OperationalError, IntegrityError, DataError) as e:
+            raise BusinessError(code=500, http_code=500, err_info=str(e))
         if not data:
             return None
         return data[0]
@@ -30,7 +33,10 @@ class ControllerMetaClass(type):
         :param sorter:
         :return:
         """
-        res = await cls.__dao__.query(query=filter_dict, pager=pager, sorter=sorter)
+        try:
+            res = await cls.__dao__.query(query=filter_dict, pager=pager, sorter=sorter)
+        except (OperationalError, IntegrityError, DataError) as e:
+            raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     async def count(cls, query: dict):
@@ -39,7 +45,10 @@ class ControllerMetaClass(type):
         :param query:
         :return:
         """
-        num = await cls.__dao__.count(query=query)
+        try:
+            num = await cls.__dao__.count(query=query)
+        except (OperationalError, IntegrityError, DataError) as e:
+            raise BusinessError(code=500, http_code=500, err_info=str(e))
         return num
 
     async def insert(cls, data: dict):
@@ -83,7 +92,10 @@ class ControllerMetaClass(type):
         :return:
         """
         query = {"id": id}
-        res = await cls.__dao__.delete(where_dict=query)
+        try:
+            res = await cls.__dao__.delete(where_dict=query)
+        except (OperationalError, IntegrityError, DataError) as e:
+            raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
 
