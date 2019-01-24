@@ -16,7 +16,7 @@ class ControllerMetaClass(type):
         :param id:
         :return:
         """
-        query = {"id": [id]}
+        query = {"id": id}
         data = await cls.__dao__.query(query=query)
         if not data:
             return None

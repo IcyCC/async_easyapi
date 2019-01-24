@@ -32,10 +32,7 @@ def default_url_condition(args: dict) -> (dict, dict, dict):
             elif k == '_order_by':
                 sorter['_order_by'] = v
             elif k == '_desc':
-                sorter['order'] = v
+                sorter['_desc'] = True
             else:
-                if isinstance(v, list):
-                    query[k] = v
-                else:
-                    query[k] = [v]
+                query[k] = v
     return query, pager, sorter

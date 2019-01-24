@@ -94,8 +94,10 @@ class DaoMetaClass(type):
                 elif k.startswith('_like_'):
                     for v in values:
                         sql = sql.where(getattr(table.c, k[6:]).like(v))
-                else:
+                elif k.startswith('_in_'):
                     sql = sql.where(getattr(table.c, k).in_(values))
+                else:
+                    sql = sql.where(getattr(table.c, k) == values)
 
         if pager is not None:
             per_page = pager.get('_per_page')
@@ -159,8 +161,11 @@ class DaoMetaClass(type):
                 elif k.startswith('_like_'):
                     for v in values:
                         sql = sql.where(getattr(table.c, k[6:]).like("%" + v))
-                else:
+                elif k.startswith('_in_'):
                     sql = sql.where(getattr(table.c, k).in_(values))
+                else:
+                    sql = sql.where(getattr(table.c, k) == values)
+
         res = await cls.__db__.execute(sql=sql)
         return await res.scalar()
 
