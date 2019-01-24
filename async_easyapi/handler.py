@@ -2,7 +2,8 @@ import asyncio
 import functools
 import quart
 import datetime
-from async_easyapi import str2hump, default_url_condition, BusinessError
+from .util import str2hump, default_url_condition
+from .errors import BusinessError
 
 
 class QuartHandlerMeta(type):
