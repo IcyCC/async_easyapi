@@ -1,5 +1,5 @@
-from async_esayapi.errors import *
-from sqlalchemy.exc import *
+from async_esayapi import BusinessError
+from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 
 
 class ControllerMetaClass(type):
