@@ -17,7 +17,6 @@ class QuartHandlerMeta(views.MethodViewType):
         :param attrs:
         :return:
         """
-        super().__new__(cls, name, bases, attrs)
         if name == "BaseQuartHandler":
             return type.__new__(cls, name, bases, attrs)
 

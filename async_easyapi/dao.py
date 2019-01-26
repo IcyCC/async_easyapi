@@ -49,7 +49,10 @@ class DaoMetaClass(type):
         attrs['__tablename__'] = attrs.get('__tablename__') or str2hump(name[:-3]) + 's'
         return type.__new__(cls, name, bases, attrs)
 
-    def reformatter(cls, data: dict):
+
+class BaseDao(metaclass=DaoMetaClass):
+    @classmethod
+    def reformatter(self, data: dict):
         """
         将model数据转换成dao数据
         :param data:
@@ -57,7 +60,8 @@ class DaoMetaClass(type):
         """
         return data
 
-    def formatter(cls, data: dict):
+    @classmethod
+    def formatter(self, data: dict):
         """
         将dao数据转换成model数据
         :param data:
@@ -65,7 +69,8 @@ class DaoMetaClass(type):
         """
         return dict(data)
 
-    async def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None):
+    @classmethod
+    async def query(self, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None):
         """
         通用查询
         :param query:
@@ -73,8 +78,8 @@ class DaoMetaClass(type):
         :param sorter:
         :return:
         """
-        await cls.__db__.connect()
-        table = cls.__db__[cls.__tablename__]
+        await self.__db__.connect()
+        table = self.__db__[self.__tablename__]
         sql = select([table])
         if query:
             for k, values in query.items():
@@ -118,30 +123,32 @@ class DaoMetaClass(type):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = await self.__db__.execute(ctx=ctx, sql=sql)
         data = await res.fetchall()
-        return list(map(cls.formatter, data))
+        return list(map(self.formatter, data))
 
-    async def insert(cls, ctx: dict = None, data: dict = None):
+    @classmethod
+    async def insert(self, ctx: dict = None, data: dict = None):
         """
         通用插入
         :param tx:
         :param args:
         :return:
         """
-        table = cls.__db__[cls.tablename]
-        data = cls.reformatter(data)
+        table = self.__db__[self.tablename]
+        data = self.reformatter(data)
         sql = table.insert().value(**data)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = await self.__db__.execute(ctx=ctx, sql=sql)
         return res
 
-    async def count(cls, query: dict = None):
+    @classmethod
+    async def count(self, query: dict = None):
         """
         计数
         :param query:
         :return:
         """
-        table = cls.__db__[cls.__tablename__]
+        table = self.__db__[self.__tablename__]
         sql = select([func.count('*')], from_obj=table)
         if query:
             for k, values in query.items():
@@ -167,10 +174,11 @@ class DaoMetaClass(type):
                 else:
                     sql = sql.where(getattr(table.c, k) == values)
 
-        res = await cls.__db__.execute(sql=sql)
+        res = await self.__db__.execute(sql=sql)
         return await res.scalar()
 
-    async def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None):
+    @classmethod
+    async def update(self, ctx: dict = None, where_dict: dict = None, data: dict = None):
         """
         通用修改
         :param ctx:
@@ -178,18 +186,19 @@ class DaoMetaClass(type):
         :param data:
         :return:
         """
-        table = cls.__db__[cls.tablename]
-        data = cls.reformatter(data)
+        table = self.__db__[self.tablename]
+        data = self.reformatter(data)
         sql = table.update()
         if where_dict is not None:
             for key, value in where_dict.items():
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
         sql = sql.value(**data)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = await self.__db__.execute(ctx=ctx, sql=sql)
         return res
 
-    async def delete(cls, ctx: dict, where_dict: dict = None):
+    @classmethod
+    async def delete(self, ctx: dict, where_dict: dict = None):
         """
         通用删除
         :param ctx:
@@ -197,15 +206,11 @@ class DaoMetaClass(type):
         :param data:
         :return:
         """
-        table = cls.__db__[cls.tablename]
+        table = self.__db__[self.tablename]
         sql = table.delete()
         if where_dict is not None:
             for key, value in where_dict.items():
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = await self.__db__.execute(ctx=ctx, sql=sql)
         return res
-
-
-class BaseDao(metaclass=DaoMetaClass):
-    pass
