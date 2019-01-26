@@ -1,3 +1,4 @@
+import asyncio
 from .errors import BusinessError
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 
@@ -25,7 +26,7 @@ class ControllerMetaClass(type):
             return None
         return data[0]
 
-    async def query(cls, filter_dict: dict, pager: dict, sorter: dict):
+    async def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
         """
         获取多个资源
         :param filter_dict:
@@ -34,22 +35,11 @@ class ControllerMetaClass(type):
         :return:
         """
         try:
-            res = await cls.__dao__.query(query=filter_dict, pager=pager, sorter=sorter)
+            res, total = await asyncio.gather(cls.__dao__.query(query, pager, sorter),
+                                        cls.__dao__.count(query))
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
-        return res
-
-    async def count(cls, query: dict):
-        """
-        获取资源总数
-        :param query:
-        :return:
-        """
-        try:
-            num = await cls.__dao__.count(query=query)
-        except (OperationalError, IntegrityError, DataError) as e:
-            raise BusinessError(code=500, http_code=500, err_info=str(e))
-        return num
+        return res, total
 
     async def insert(cls, data: dict):
         """

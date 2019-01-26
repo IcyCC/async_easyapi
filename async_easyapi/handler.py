@@ -3,7 +3,7 @@ import functools
 import quart
 from quart import views
 import datetime
-from .util import str2hump, default_url_condition
+from .util import str2hump, DefaultUrlCondition
 from .errors import BusinessError
 
 
@@ -22,7 +22,7 @@ class QuartHandlerMeta(views.MethodViewType):
             return type.__new__(cls, name, bases, attrs)
 
         attrs['__resource__'] = attrs.get('__resource__') or str2hump(name[:-7])
-        attrs['__url_condition__'] = attrs.get('__url_condition__') or default_url_condition
+        attrs['__url_condition__'] = attrs.get('__url_condition__') or DefaultUrlCondition
         if not attrs.get('__controller__'):
             raise NotImplementedError("Handler require a  controller.")
 
@@ -85,16 +85,16 @@ class BaseQuartHandler(views.MethodView, metaclass=QuartHandlerMeta):
         method = body.get("_method") or "POST"
 
         if method == 'GET':
-            query, pager, sorter = self.__url_condition__(body.get("_args"))
+            query, pager, sorter = self.__url_condition__.parser(body.get("_args"))
             try:
-                res, count = await asyncio.gather(self.__controller__.query(query, pager, sorter),
-                                                  self.__controller__.count(query))
+                res, count = await self.__controller__.query(query, pager, sorter)
+
             except BusinessError as e:
                 return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
             return quart.jsonify(**{
                 'msg': '',
                 'code': 200,
-                self.__resource__: res,
+                self.__resource__ + 's': res,
                 'total': count
             })
         else:
@@ -114,7 +114,7 @@ def register_api(app, view, endpoint: str, url: str, pk='id', pk_type='int'):
     :return:
     """
     view_func = view.as_view(endpoint)
-    app.add_url_rule(url, defaults={pk: None},
+    app.add_url_rule(url,
                      view_func=view_func, methods=['GET', ])
     app.add_url_rule(url, view_func=view_func, methods=['POST', ])
     app.add_url_rule('%s/<%s:%s>' % (url, pk_type, pk), view_func=view_func,
