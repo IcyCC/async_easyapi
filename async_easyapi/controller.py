@@ -14,6 +14,10 @@ class ControllerMetaClass(type):
 
 class BaseController(metaclass=ControllerMetaClass):
     @classmethod
+    async def formatter(cls, data: dict):
+        return dict
+
+    @classmethod
     async def get(cls, id: int):
         """
         获取单个资源
@@ -27,7 +31,7 @@ class BaseController(metaclass=ControllerMetaClass):
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         if not data:
             return None
-        return data[0]
+        return cls.formatter(data[0])
 
     @classmethod
     async def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
@@ -43,7 +47,7 @@ class BaseController(metaclass=ControllerMetaClass):
                                               cls.__dao__.count(query))
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
-        return res, total
+        return map(cls.formatter, res), total
 
     @classmethod
     async def insert(cls, data: dict):
