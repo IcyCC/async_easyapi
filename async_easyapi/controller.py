@@ -14,7 +14,7 @@ class ControllerMetaClass(type):
 
 class BaseController(metaclass=ControllerMetaClass):
     @classmethod
-    async def get(self, id: int):
+    async def get(cls, id: int):
         """
         获取单个资源
         :param id:
@@ -22,7 +22,7 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         query = {"id": id}
         try:
-            data = await self.__dao__.query(query=query)
+            data = await cls.__dao__.query(query=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         if not data:
@@ -30,7 +30,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return data[0]
 
     @classmethod
-    async def query(self, query: dict, pager: dict, sorter: dict) -> (list, dict):
+    async def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
         """
         获取多个资源
         :param filter_dict:
@@ -39,50 +39,50 @@ class BaseController(metaclass=ControllerMetaClass):
         :return:
         """
         try:
-            res, total = await asyncio.gather(self.__dao__.query(query, pager, sorter),
-                                              self.__dao__.count(query))
+            res, total = await asyncio.gather(cls.__dao__.query(query, pager, sorter),
+                                              cls.__dao__.count(query))
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res, total
 
     @classmethod
-    async def insert(self, data: dict):
+    async def insert(cls, data: dict):
         """
         插入单个资源
         :param body:
         :return:
         """
-        if self.__validator__ is not None:
-            err = self.__validator__.validate(data)
+        if cls.__validator__ is not None:
+            err = cls.__validator__.validate(data)
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         try:
-            res = await self.__dao__.insert(data=data)
+            res = await cls.__dao__.insert(data=data)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     @classmethod
-    async def update(self, id: int, data: dict):
+    async def update(cls, id: int, data: dict):
         """
         修改单个资源
         :param id:
         :param data:
         :return:
         """
-        if self.__validator__ is not None:
-            err = self.__validator__.validate(data)
+        if cls.__validator__ is not None:
+            err = cls.__validator__.validate(data)
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id}
         try:
-            res = await self.__dao__.update(where_dict=query, data=data)
+            res = await cls.__dao__.update(where_dict=query, data=data)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     @classmethod
-    async def delete(self, id: int):
+    async def delete(cls, id: int):
         """
         删除单个资源
         :param id:
@@ -90,7 +90,7 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         query = {"id": id}
         try:
-            res = await self.__dao__.delete(where_dict=query)
+            res = await cls.__dao__.delete(where_dict=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
