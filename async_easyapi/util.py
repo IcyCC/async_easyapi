@@ -1,3 +1,6 @@
+import abc
+
+
 def str2hump(listx):
     listy = listx[0]
     for i in range(1, len(listx)):
@@ -14,25 +17,36 @@ def str2hump(listx):
     return listy.lower()
 
 
-def default_url_condition(args: dict) -> (dict, dict, dict):
-    """
-    默认的url参数条件解析
-    :param args:
-    :return:
-    """
-    query = {}
-    pager = {}
-    sorter = {}
-    if args:
-        for k, v in args.items():
-            if k == '_per_page':
-                pager['_per_page'] = v
-            elif k == '_page':
-                pager['_page'] = v
-            elif k == '_order_by':
-                sorter['_order_by'] = v
-            elif k == '_desc':
-                sorter['_desc'] = True
-            else:
-                query[k] = v
-    return query, pager, sorter
+class AbcUrlCondition(metaclass=abc.ABCMeta):
+
+    @classmethod
+    @abc.abstractmethod
+    def parser(cls, args: dict) -> (dict, dict, dict):
+        raise NotImplementedError
+
+
+class DefaultUrlCondition(AbcUrlCondition):
+
+    @classmethod
+    def parser(cls, args: dict) -> (dict, dict, dict):
+        """
+        默认的url参数条件解析
+        :param args:
+        :return:
+        """
+        query = {}
+        pager = {}
+        sorter = {}
+        if args:
+            for k, v in args.items():
+                if k == '_per_page':
+                    pager['_per_page'] = v
+                elif k == '_page':
+                    pager['_page'] = v
+                elif k == '_order_by':
+                    sorter['_order_by'] = v
+                elif k == '_desc':
+                    sorter['_desc'] = True
+                else:
+                    query[k] = v
+        return query, pager, sorter

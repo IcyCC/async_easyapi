@@ -21,8 +21,11 @@ class UserController(async_easyapi.BaseController):
 class UserHandler(async_easyapi.BaseQuartHandler):
     __controller__ = UserController
 
+    def get(self, id: int):
+        return super().get(id)
 
-app.register_blueprint(UserHandler.__blueprint__)
+
+async_easyapi.register_api(app=app, view=UserHandler, endpoint='user_api', url='/users', )
 
 if __name__ == '__main__':
     app.run()

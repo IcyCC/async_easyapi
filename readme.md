@@ -28,11 +28,10 @@ class UserController(async_esayapi.BaseController):
     __dao__ = UserDao
 
 
-class UserHandler(async_esayapi.BaseQuartHandler):
+class UserHandler(async_easyapi.BaseQuartHandler):
     __controller__ = UserController
 
-
-app.register_blueprint(UserHandler.__blueprint__)
+async_easyapi.register_api(app=app, view=UserHandler, endpoint='user_api', url='/users', )
 
 if __name__ == '__main__':
     app.run()
@@ -53,20 +52,19 @@ class UserController(async_esayapi.BaseController):
         """).fetchall()    
         # 格式化
         return res
+        
+bp = Blueprint(name='users', url_prefix='/users')
 
-bp = quart.Blueprint('users', 'users')
 class UserHandler(async_esayapi.BaseQuartHandler):
     __controller__ = UserController
-    __blueprint__ = bp
-    
-     @bp.route('/complex')
-     @staticmethod
-     async def complex_api():
-        res = UserController.complex_model()
-        return res
 
+async_easyapi.register_api(app=bp, view=UserHandler, endpoint='user_api', url='/users')
 
-app.register_blueprint(UserHandler.__blueprint__)
+@bp.route('xxx') 
+async def complex_api():
+    res = UserController.complex_model()
+    return res
+
 
 if __name__ == '__main__':
     app.run()
