@@ -15,7 +15,7 @@ class ControllerMetaClass(type):
 class BaseController(metaclass=ControllerMetaClass):
     @classmethod
     async def formatter(cls, data: dict):
-        return dict
+        return data
 
     @classmethod
     async def get(cls, id: int):
