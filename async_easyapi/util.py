@@ -46,7 +46,7 @@ class DefaultUrlCondition(AbcUrlCondition):
                 elif k == '_order_by':
                     sorter['_order_by'] = v
                 elif k == '_desc':
-                    sorter['_desc'] = True
+                    sorter['_desc'] = v
                 else:
                     query[k] = v
         return query, pager, sorter
