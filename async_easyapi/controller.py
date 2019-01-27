@@ -1,18 +1,23 @@
 import asyncio
 from .errors import BusinessError
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
-
+from datetime import datetime
 
 class ControllerMetaClass(type):
     def __new__(cls, name, bases, attrs):
-        if name == "BaseController":
+        if name == "BaseController" or name == "BusinessControllerBase":
             return type.__new__(cls, name, bases, attrs)
         if attrs.get('__dao__') is None:
             raise NotImplementedError("Should have __dao__ value.")
+        cls.__validator__ = attrs.get('__validator__', None)
         return type.__new__(cls, name, bases, attrs)
 
 
 class BaseController(metaclass=ControllerMetaClass):
+    @classmethod
+    def formatter(cls, data: dict):
+        return data
+
     @classmethod
     async def get(cls, id: int):
         """
@@ -22,12 +27,12 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         query = {"id": id}
         try:
-            data = await cls.__dao__.query(query=query)
+            data = await cls.__dao__.get(query=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         if not data:
             return None
-        return data[0]
+        return cls.formatter(data)
 
     @classmethod
     async def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
@@ -43,7 +48,7 @@ class BaseController(metaclass=ControllerMetaClass):
                                               cls.__dao__.count(query))
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
-        return res, total
+        return list(map(cls.formatter, res)), total
 
     @classmethod
     async def insert(cls, data: dict):

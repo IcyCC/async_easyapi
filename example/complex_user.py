@@ -6,30 +6,26 @@ loop = asyncio.get_event_loop()
 
 app = Quart(__name__)
 
-my_db = async_easyapi.MysqlDB('root', 'Root!!2018', 'localhost', 3306, 'EDUCATION')
+my_db = async_easyapi.MysqlDB('root', 'wshwoaini', 'localhost', 3306, 'EDUCATION')
 loop.run_until_complete(my_db.connect())
 
 
-class UserDao(async_easyapi.BaseDao):
+class UserDao(async_easyapi.BusinessDaoBase):
     __db__ = my_db
 
 
 class UserController(async_easyapi.BaseController):
     __dao__ = UserDao
 
-    @classmethod
-    def complex_bussiness(cls):
-        return "complex"
 
-
-bp = Blueprint(name='users', import_name='users', url_prefix='/users')
+bp = Blueprint(name='users', import_name='users', url_prefix='')
 
 
 class UserHandler(async_easyapi.BaseQuartHandler):
     __controller__ = UserController
 
 
-async_easyapi.register_api(app=bp, view=UserHandler, endpoint='user_api', url='')
+async_easyapi.register_api(app=bp, view=UserHandler, endpoint='user_api', url='/users')
 
 
 @bp.route('/complex')
