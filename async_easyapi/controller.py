@@ -5,7 +5,7 @@ from datetime import datetime
 
 class ControllerMetaClass(type):
     def __new__(cls, name, bases, attrs):
-        if name == "BaseController" or name == "BusinessControllerBase":
+        if "BaseController" in name:
             return type.__new__(cls, name, bases, attrs)
         if attrs.get('__dao__') is None:
             raise NotImplementedError("Should have __dao__ value.")

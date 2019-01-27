@@ -68,7 +68,7 @@ class DaoMetaClass(type):
         :param attrs:
         :return:
         """
-        if name == "BaseDao" or name == "BusinessDaoBase":
+        if "BaseDao" in name:
             return type.__new__(cls, name, bases, attrs)
         if attrs.get('__db__') is None:
             raise NotImplementedError("Should have __db__ value.")
