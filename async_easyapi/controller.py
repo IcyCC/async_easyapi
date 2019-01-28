@@ -60,8 +60,8 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         query = cls.reformatter(data=query)
         try:
-            res, total = await asyncio.gather(cls.__dao__.query(query, pager, sorter),
-                                              cls.__dao__.count(query))
+            res, total = await asyncio.gather(cls.__dao__.query(query=query, pager=pager, sorter=sorter),
+                                              cls.__dao__.count(query=query))
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return list(map(cls.formatter, res)), total

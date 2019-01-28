@@ -37,7 +37,7 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         :return:
         """
         try:
-            data = await self.__controller__.get(id)
+            data = await self.__controller__.get(id=id)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         if not data:
@@ -58,7 +58,7 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         """
         body = await quart.request.json
         try:
-            await self.__controller__.put(id, body)
+            await self.__controller__.put(id=id, data=body)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         return quart.jsonify(code=200, msg='')
@@ -70,7 +70,7 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         :return:
         """
         try:
-            await self.__controller__.put(id, {'deleted_at': datetime.datetime.now()})
+            await self.__controller__.delete(id=id)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         return quart.jsonify(code=200, msg='')
@@ -86,7 +86,7 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         if method == 'GET':
             query, pager, sorter = self.__url_condition__.parser(body.get("_args"))
             try:
-                res, count = await self.__controller__.query(query, pager, sorter)
+                res, count = await self.__controller__.query(query=query, pager=pager, sorter=sorter)
 
             except BusinessError as e:
                 return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
