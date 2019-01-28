@@ -3,6 +3,7 @@ from .errors import BusinessError
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 from datetime import datetime
 
+
 class ControllerMetaClass(type):
     def __new__(cls, name, bases, attrs):
         if "BaseController" in name:
@@ -16,6 +17,20 @@ class ControllerMetaClass(type):
 class BaseController(metaclass=ControllerMetaClass):
     @classmethod
     def formatter(cls, data: dict):
+        """
+        限制资源返回
+        :param data:
+        :return:
+        """
+        return data
+
+    @classmethod
+    def reformatter(cls, data: dict):
+        """
+        限制资源查询方式
+        :param data:
+        :return:
+        """
         return data
 
     @classmethod
@@ -43,6 +58,7 @@ class BaseController(metaclass=ControllerMetaClass):
         :param sorter:
         :return:
         """
+        query = cls.reformatter(data=query)
         try:
             res, total = await asyncio.gather(cls.__dao__.query(query, pager, sorter),
                                               cls.__dao__.count(query))
