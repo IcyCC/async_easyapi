@@ -28,7 +28,7 @@ class QuartHandlerMeta(views.MethodViewType):
         return type.__new__(cls, name, bases, attrs)
 
 
-class BaseQuartHandler(views.MethodView, metaclass=QuartHandlerMeta):
+class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
 
     async def get(self, id: int):
         """
