@@ -10,18 +10,22 @@ my_db = async_easyapi.MysqlDB('root', 'wshwoaini', 'localhost', 3306, 'EDUCATION
 loop.run_until_complete(my_db.connect())
 
 
-class UserDao(async_easyapi.BusinessDaoBase):
+class UserDao(async_easyapi.BusinessBaseDao):
     __db__ = my_db
 
 
 class UserController(async_easyapi.BaseController):
     __dao__ = UserDao
 
+    @classmethod
+    async def complex_bussiness(cls):
+        return "complex"
+
 
 bp = Blueprint(name='users', import_name='users', url_prefix='')
 
 
-class UserHandler(async_easyapi.BaseQuartHandler):
+class UserHandler(async_easyapi.QuartBaseHandler):
     __controller__ = UserController
 
 
@@ -30,7 +34,7 @@ async_easyapi.register_api(app=bp, view=UserHandler, endpoint='user_api', url='/
 
 @bp.route('/complex')
 async def complex_api():
-    res = UserController.complex_bussiness()
+    res = await UserController.complex_bussiness()
     return res
 
 app.register_blueprint(bp)

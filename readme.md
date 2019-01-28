@@ -54,7 +54,7 @@ my_db = async_easyapi.MysqlDB('root', 'Root!!2018', 'localhost', 3306, 'EDUCATIO
 loop.run_until_complete(my_db.connect())
 
 
-class UserDao(async_easyapi.BaseDao):
+class UserDao(async_easyapi.BusinessBaseDao):
     __db__ = my_db
 
 
