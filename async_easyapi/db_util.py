@@ -1,8 +1,9 @@
-from sqlalchemy import create_engine, MetaData, Table
-from sqlalchemy_aio import ASYNCIO_STRATEGY
+from sqlalchemy import MetaData
+import sqlalchemy as sa
+from aiomysql.sa import create_engine
 
 
-def get_engine(user: str, password: str, host: str, port: str, database: str):
+def get_sync_engine(user: str, password: str, host: str, port: str, database: str):
     print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
         user=user,
         password=password,
@@ -10,7 +11,7 @@ def get_engine(user: str, password: str, host: str, port: str, database: str):
         port=port,
         database=database,
     ))
-    engine = create_engine(
+    engine = sa.create_engine(
         'mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
             user=user,
             password=password,
@@ -18,8 +19,24 @@ def get_engine(user: str, password: str, host: str, port: str, database: str):
             port=port,
             database=database
         ),
-        strategy=ASYNCIO_STRATEGY,
-        pool_size=100
+    )
+    return engine
+
+
+async def get_engine(user: str, password: str, host: str, port: str, database: str):
+    print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
+        user=user,
+        password=password,
+        host=host,  # your host
+        port=port,
+        database=database,
+    ))
+    engine = await create_engine(
+        user=user,
+        password=password,
+        host=host,  # your host
+        port=port,
+        db=database
     )
     return engine
 
@@ -36,6 +53,7 @@ class MysqlDB(object):
         self.port = port
         self.database = database
         self._engine = None
+        self._sync_engine = None
         self._metadata = None
         self._tables = None
 
@@ -44,10 +62,12 @@ class MysqlDB(object):
         链接数据库 初始化engine
         :return:
         """
-        self._engine = get_engine(user=self.user, password=self.password, host=self.host, port=self.port,
-                                  database=self.database)
-        self._metadata = MetaData(self._engine)
-        self._metadata.reflect(bind=self._engine.sync_engine)
+        self._sync_engine = get_sync_engine(user=self.user, password=self.password, host=self.host, port=self.port,
+                                            database=self.database)
+        self._engine = await get_engine(user=self.user, password=self.password, host=self.host, port=self.port,
+                                        database=self.database)
+        self._metadata = MetaData(self._sync_engine)
+        self._metadata.reflect(bind=self._sync_engine)
         self._tables = self._metadata.tables
 
     def __getitem__(self, name):
@@ -69,10 +89,7 @@ class MysqlDB(object):
         if ctx is not None:
             conn = ctx.get("connection", None)
         if conn is None:
-            conn = await self._engine.connect(close_with_result=True)
-        try:
-            res = await conn.execute(sql, *args, **kwargs)
-        except Exception as e:
-            conn.close()
-            raise e
-        return res
+            async with self._engine.acquire() as conn:
+                return await conn.execute(sql, *args, **kwargs)
+        else:
+            return await conn.execute(sql, *args, **kwargs)
