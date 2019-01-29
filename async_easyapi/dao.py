@@ -251,7 +251,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res
 
     @classmethod
-    async def delete(cls, ctx: dict, where_dict: dict = None):
+    async def delete(cls, ctx: dict = None, where_dict: dict = None):
         """
         通用删除
         :param ctx:
@@ -324,7 +324,7 @@ class BusinessBaseDao(BaseDao):
         return res.rowcount
 
     @classmethod
-    async def delete(cls, ctx: dict, where_dict: dict = None):
+    async def delete(cls, ctx: dict=None, where_dict: dict = None):
         """
         通用删除
         :param ctx:
