@@ -36,7 +36,8 @@ async def get_engine(user: str, password: str, host: str, port: str, database: s
         password=password,
         host=host,  # your host
         port=port,
-        db=database
+        db=database,
+        autocommit=True
     )
     return engine
 
