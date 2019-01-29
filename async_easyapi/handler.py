@@ -58,7 +58,7 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         """
         body = await quart.request.json
         try:
-            await self.__controller__.put(id=id, data=body)
+            await self.__controller__.update(id=id, data=body)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         return quart.jsonify(code=200, msg='')
