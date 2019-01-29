@@ -18,7 +18,8 @@ def get_engine(user: str, password: str, host: str, port: str, database: str):
             port=port,
             database=database
         ),
-        strategy=ASYNCIO_STRATEGY
+        strategy=ASYNCIO_STRATEGY,
+        pool_size=100
     )
     return engine
 
@@ -68,5 +69,10 @@ class MysqlDB(object):
         if ctx is not None:
             conn = ctx.get("connection", None)
         if conn is None:
-            conn = await self._engine.connect()
-        return await conn.execute(sql, *args, **kwargs)
+            conn = await self._engine.connect(close_with_result=True)
+        try:
+            res = await conn.execute(sql, *args, **kwargs)
+        except Exception as e:
+            conn.close()
+            raise e
+        return res
