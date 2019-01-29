@@ -13,7 +13,7 @@ class Transaction():
         self._connect = None
 
     async def __aenter__(self):
-        self._connect = await self._db.engine().connect()
+        self._connect = await self._db.engine.acquire()
         self._transaction = await self._connect.begin()
         return self._connect
 
@@ -23,6 +23,8 @@ class Transaction():
         except Exception as e:
             await self._transaction.rollback()
             raise e
+        finally:
+            await self._connect.close()
 
 
 def get_tx(db: MysqlDB):
