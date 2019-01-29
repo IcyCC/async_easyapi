@@ -18,7 +18,7 @@ class UserController(async_easyapi.BaseController):
     __dao__ = UserDao
 
 
-class UserHandler(async_easyapi.BaseQuartHandler):
+class UserHandler(async_easyapi.QuartBaseHandler):
     __controller__ = UserController
 
     def get(self, id: int):
