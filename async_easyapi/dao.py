@@ -206,7 +206,7 @@ class BaseDao(metaclass=DaoMetaClass):
         data = cls.reformatter(data)
         sql = table.insert().values(**data)
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        return res.inserted_primary_key[0]
+        return res.lastrowid
 
     @classmethod
     async def count(cls, query: dict = None):
