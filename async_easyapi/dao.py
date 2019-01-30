@@ -113,7 +113,7 @@ class BaseDao(metaclass=DaoMetaClass):
             sql = search_sql(sql, query, table)
         sql = sql.order_by(getattr(table.c, sorter_key, table.c.id).desc())
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        data = await res.fetchone()
+        data = await res.first()
         if not data:
             return None
         return cls.formatter(data)
@@ -135,7 +135,7 @@ class BaseDao(metaclass=DaoMetaClass):
         sql = sql.order_by(getattr(table.c, sorter_key, table.c.id))
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
 
-        data = await res.fetchone()
+        data = await res.first()
         if not data:
             return None
         return cls.formatter(data)
@@ -153,7 +153,7 @@ class BaseDao(metaclass=DaoMetaClass):
         if query:
             sql = search_sql(sql, query, table)
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        data = await res.fetchone()
+        data = await res.first()
         if not data:
             return None
         return cls.formatter(data)
