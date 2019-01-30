@@ -1,4 +1,6 @@
 import abc
+from decimal import Decimal
+from datetime import datetime
 
 
 def str2hump(listx):
@@ -15,6 +17,18 @@ def str2hump(listx):
         else:
             listy += listx[i]
     return listy.lower()
+
+
+def type_to_json(data):
+    new_data = dict()
+    for key, value in data.items():
+        if isinstance(value, Decimal):
+            new_data[key] = float(value)
+        elif isinstance(value, datetime):
+            new_data[key] = str(value)
+        else:
+            new_data[key] = value
+    return new_data
 
 
 class AbcUrlCondition(metaclass=abc.ABCMeta):

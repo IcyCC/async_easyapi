@@ -10,7 +10,7 @@ my_db = async_easyapi.MysqlDB('root', 'wshwoaini', 'localhost', 3306, 'EDUCATION
 loop.run_until_complete(my_db.connect())
 
 
-class UserDao(async_easyapi.BusinessBaseDao):
+class UserDao(async_easyapi.BaseDao):
     __db__ = my_db
 
 
@@ -39,4 +39,4 @@ async def complex_api():
 
 app.register_blueprint(bp)
 if __name__ == '__main__':
-    app.run()
+    app.run(port=8000)

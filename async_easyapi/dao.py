@@ -1,6 +1,6 @@
 import functools
 from sqlalchemy.sql import select, and_, func, between, distinct, text
-from .util import str2hump
+from .util import str2hump, type_to_json
 from .db_util import MysqlDB
 from sqlalchemy.exc import NoSuchColumnError
 import datetime
@@ -96,7 +96,7 @@ class BaseDao(metaclass=DaoMetaClass):
         :param data:
         :return:
         """
-        return dict(data)
+        return type_to_json(data)
 
     @classmethod
     async def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
@@ -284,7 +284,7 @@ class BusinessBaseDao(BaseDao):
         for key, value in data.items():
             if key not in ignore_columns:
                 new_data[key] = value
-        return new_data
+        return type_to_json(new_data)
 
     @classmethod
     def reformatter(cls, data: dict):
