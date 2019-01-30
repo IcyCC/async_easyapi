@@ -1,13 +1,13 @@
-import asyncio
+import io
 import functools
-import quart
-from quart import views
+import flask
+from flask import views
 import datetime
 from .util import str2hump, DefaultUrlCondition
 from .errors import BusinessError
 
 
-class QuartHandlerMeta(views.MethodViewType):
+class FlaskHandlerMeta(views.MethodViewType):
 
     def __new__(cls, name, bases, attrs):
         """
@@ -28,69 +28,69 @@ class QuartHandlerMeta(views.MethodViewType):
         return type.__new__(cls, name, bases, attrs)
 
 
-class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
+class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
 
-    async def get(self, id: int):
+    def get(self, id: int):
         """
         获取单个资源
         :param id:
         :return:
         """
         try:
-            data = await self.__controller__.get(id=id)
+            data = self.__controller__.get(id=id)
         except BusinessError as e:
-            return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
+            return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         if not data:
-            return quart.jsonify(**{
+            return flask.jsonify(**{
                 'msg': '',
                 'code': 404,
             }), 404
-        return quart.jsonify(**{
+        return flask.jsonify(**{
             'msg': '',
             'code': 200,
             self.__resource__: data
         })
 
-    async def put(self, id):
+    def put(self, id):
         """
         新增的路由
         :return:
         """
-        body = await quart.request.json
+        body = flask.request.json
         try:
-            await self.__controller__.update(id=id, data=body)
+            self.__controller__.update(id=id, data=body)
         except BusinessError as e:
-            return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-        return quart.jsonify(code=200, msg='')
+            return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
+        return flask.jsonify(code=200, msg='')
 
-    async def delete(self, id):
+    def delete(self, id):
         """
         删除的路由
         :param id:
         :return:
         """
         try:
-            await self.__controller__.delete(id=id)
+            self.__controller__.delete(id=id)
         except BusinessError as e:
-            return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-        return quart.jsonify(code=200, msg='')
+            return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
+        return flask.jsonify(code=200, msg='')
 
-    async def post(self):
+    def post(self):
         """
         处理 查询和新增
         :return:
         """
-        body = await quart.request.json
+        body = flask.request.json
         method = body.get("_method") or "POST"
 
         if method == 'GET':
             query, pager, sorter = self.__url_condition__.parser(body.get("_args"))
             try:
-                res, count = await self.__controller__.query(query=query, pager=pager, sorter=sorter)
+                res, count = self.__controller__.query(query=query, pager=pager, sorter=sorter)
 
             except BusinessError as e:
-                return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-            return quart.jsonify(**{
+                return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
+            return flask.jsonify(**{
                 'msg': '',
                 'code': 200,
                 self.__resource__ + 's': res,
@@ -98,10 +98,10 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
             })
         else:
             try:
-                await self.__controller__.insert(body)
+                self.__controller__.insert(body)
             except BusinessError as e:
-                return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-            return quart.jsonify(code=200, msg='')
+                return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
+            return flask.jsonify(code=200, msg='')
 
 
 def register_api(app, view, endpoint: str, url: str, pk='id', pk_type='int'):

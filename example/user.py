@@ -1,31 +1,30 @@
-import asyncio
 import async_easyapi
-from quart import Quart, Blueprint
+from flask import Flask, Blueprint
 
-loop = asyncio.get_event_loop()
-
-app = Quart(__name__)
+app = Flask(__name__)
 
 my_db = async_easyapi.MysqlDB('root', 'Root!!2018', 'localhost', 3306, 'EDUCATION')
-loop.run_until_complete(my_db.connect())
+my_db.connect()
 
 
 class UserDao(async_easyapi.BaseDao):
     __db__ = my_db
+    __tablename__ = "users"
 
 
 class UserController(async_easyapi.BaseController):
     __dao__ = UserDao
 
 
-class UserHandler(async_easyapi.QuartBaseHandler):
+bp = Blueprint(name='users', import_name='users', url_prefix='')
+
+
+class UserHandler(async_easyapi.FlaskBaseHandler):
     __controller__ = UserController
 
-    def get(self, id: int):
-        return super().get(id)
 
+async_easyapi.register_api(app=bp, view=UserHandler, endpoint='user_api', url='/users')
 
-async_easyapi.register_api(app=app, view=UserHandler, endpoint='user_api', url='/users', )
-
+app.register_blueprint(bp)
 if __name__ == '__main__':
-    app.run()
+    app.run(port=8000)

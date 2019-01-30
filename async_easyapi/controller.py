@@ -1,4 +1,4 @@
-import asyncio
+import io
 from .errors import BusinessError
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 from datetime import datetime
@@ -34,7 +34,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return data
 
     @classmethod
-    async def get(cls, id: int):
+    def get(cls, id: int):
         """
         获取单个资源
         :param id:
@@ -42,7 +42,7 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         query = {"id": id}
         try:
-            data = await cls.__dao__.get(query=query)
+            data = cls.__dao__.get(query=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         if not data:
@@ -50,7 +50,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return cls.formatter(data)
 
     @classmethod
-    async def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
+    def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
         """
         获取多个资源
         :param filter_dict:
@@ -60,14 +60,14 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         query = cls.reformatter(data=query)
         try:
-            res, total = await asyncio.gather(cls.__dao__.query(query=query, pager=pager, sorter=sorter),
-                                              cls.__dao__.count(query=query))
+            res = cls.__dao__.query(query=query, pager=pager, sorter=sorter)
+            total = cls.__dao__.count(query=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return list(map(cls.formatter, res)), total
 
     @classmethod
-    async def insert(cls, data: dict):
+    def insert(cls, data: dict):
         """
         插入单个资源
         :param body:
@@ -78,13 +78,13 @@ class BaseController(metaclass=ControllerMetaClass):
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         try:
-            res = await cls.__dao__.insert(data=data)
+            res = cls.__dao__.insert(data=data)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     @classmethod
-    async def update(cls, id: int, data: dict):
+    def update(cls, id: int, data: dict):
         """
         修改单个资源
         :param id:
@@ -97,21 +97,22 @@ class BaseController(metaclass=ControllerMetaClass):
                 raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id}
         try:
-            res = await cls.__dao__.update(where_dict=query, data=data)
+            res = cls.__dao__.update(where_dict=query, data=data)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
 
     @classmethod
-    async def delete(cls, id: int):
+    def delete(cls, id: int):
         """
         删除单个资源
         :param id:
         :return:
         """
+
         query = {"id": id}
         try:
-            res = await cls.__dao__.delete(where_dict=query)
+            res = cls.__dao__.delete(where_dict=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res
