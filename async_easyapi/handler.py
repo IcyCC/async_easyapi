@@ -97,7 +97,10 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
                 'total': count
             })
         else:
-            await self.__controller__.insert(body)
+            try:
+                await self.__controller__.insert(body)
+            except BusinessError as e:
+                return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
             return quart.jsonify(code=200, msg='')
 
 
