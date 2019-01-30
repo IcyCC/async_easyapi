@@ -13,7 +13,7 @@ class Transaction():
         self._connect = None
 
     async def __aenter__(self):
-        self._connect = await self._db.engine.acquire()
+        self._connect = await self._db._engine.acquire()
         self._transaction = await self._connect.begin()
         return self._connect
 
@@ -209,7 +209,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.lastrowid
 
     @classmethod
-    async def count(cls, query: dict = None):
+    async def count(cls, ctx: dict, query: dict = None):
         """
         计数
         :param query:
@@ -221,7 +221,7 @@ class BaseDao(metaclass=DaoMetaClass):
         if query:
             sql = search_sql(sql, query, table)
 
-        res = await cls.__db__.execute(sql=sql)
+        res = await cls.__db__.execute(ctx=ctx, sql=sql)
         return await res.scalar()
 
     @classmethod
@@ -324,7 +324,7 @@ class BusinessBaseDao(BaseDao):
         return res.rowcount
 
     @classmethod
-    async def delete(cls, ctx: dict=None, where_dict: dict = None):
+    async def delete(cls, ctx: dict = None, where_dict: dict = None):
         """
         通用删除
         :param ctx:
