@@ -65,5 +65,7 @@ class MysqlDB(object):
         if ctx is not None:
             conn = ctx.get("connection", None)
         if conn is None:
-            conn = self._engine.connect(close_with_result=True)
-        return conn.execute(sql, *args, **kwargs)
+            with self._engine.connect(close_with_result=True) as conn:
+                return conn.execute(sql, *args, **kwargs)
+        else:
+            return conn.execute(sql, *args, **kwargs)
