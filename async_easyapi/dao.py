@@ -209,7 +209,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.lastrowid
 
     @classmethod
-    async def count(cls, ctx: dict, query: dict = None):
+    async def count(cls, ctx: dict = None, query: dict = None):
         """
         计数
         :param query:
