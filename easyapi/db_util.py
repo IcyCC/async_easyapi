@@ -18,7 +18,7 @@ def get_engine(user, password, host, port, database, pool_size=100 ):
             port=port,
             database=database,
         ),
-        pool_size=100,
+        pool_size=pool_size,
         pool=QueuePool
     )
     return engine
