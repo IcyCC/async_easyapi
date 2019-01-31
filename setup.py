@@ -1,10 +1,10 @@
 from setuptools import setup
 
 setup(
-    name='async_easyapi',
+    name='easyapi',
     version='1.0',
     description='一个方便拓展快速构建异步curd的后端api工具 基于 quart',
-    packages=['async_easyapi'],
+    packages=['easyapi'],
     author='suchang and zhengzhandong',
     long_description=__doc__,
     long_description_content_type="text/markdown",
