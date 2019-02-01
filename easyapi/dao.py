@@ -12,12 +12,12 @@ class Transaction():
         self._transaction = None
         self._connect = None
 
-    def __aenter__(self):
+    def __enter__(self):
         self._connect = self._db._engine.connect()
         self._transaction = self._connect.begin()
         return self._connect
 
-    def __aexit__(self, exc_type, exc, tb):
+    def __exit__(self, exc_type, exc, tb):
         try:
             self._transaction.commit()
         except Exception as e:
