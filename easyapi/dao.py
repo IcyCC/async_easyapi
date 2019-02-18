@@ -32,9 +32,14 @@ def get_tx(db: MysqlDB):
 
 
 def search_sql(sql, query: dict, table):
-    for k, values in query.items():
-        if not values:
+    for k in query.keys():
+        if not query[k]:
             continue
+        if type(query[k]) is not list:
+            # 兼容处理
+            values = [query[k]]
+        else:
+            values = query[k]
         if k.startswith('_gt_'):
             for v in values:
                 sql = sql.where(getattr(table.c, k[4:]) > v)
@@ -53,7 +58,7 @@ def search_sql(sql, query: dict, table):
         elif k.startswith('_in_'):
             sql = sql.where(getattr(table.c, k).in_(values))
         else:
-            sql = sql.where(getattr(table.c, k) == values)
+            sql = sql.where(getattr(table.c, k) == values[0])
     return sql
 
 
