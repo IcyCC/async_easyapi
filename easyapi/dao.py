@@ -56,7 +56,7 @@ def search_sql(sql, query: dict, table):
             for v in values:
                 sql = sql.where(getattr(table.c, k[6:]).like(v))
         elif k.startswith('_in_'):
-            sql = sql.where(getattr(table.c, k).in_(values))
+            sql = sql.where(getattr(table.c, k[4:]).in_(values))
         else:
             sql = sql.where(getattr(table.c, k) == values[0])
     return sql
