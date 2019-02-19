@@ -54,7 +54,7 @@ def search_sql(sql, query: dict, table):
                 sql = sql.where(getattr(table.c, k[5:]) <= v)
         elif k.startswith('_like_'):
             for v in values:
-                sql = sql.where(getattr(table.c, k[6:]).like(v))
+                sql = sql.where(getattr(table.c, k[6:]).like(v + '%'))
         elif k.startswith('_in_'):
             sql = sql.where(getattr(table.c, k[4:]).in_(values))
         else:
