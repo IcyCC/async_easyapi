@@ -12,19 +12,19 @@ class Transaction():
         self._transaction = None
         self._connect = None
 
-    async def __aenter__(self):
-        self._connect = await self._db._engine.acquire()
-        self._transaction = await self._connect.begin()
+    def __enter__(self):
+        self._connect = self._db._engine.connect()
+        self._transaction = self._connect.begin()
         return self._connect
 
-    async def __aexit__(self, exc_type, exc, tb):
+    def __exit__(self, exc_type, exc, tb):
         try:
-            await self._transaction.commit()
+            self._transaction.commit()
         except Exception as e:
-            await self._transaction.rollback()
+            self._transaction.rollback()
             raise e
         finally:
-            await self._connect.close()
+            self._connect.close()
 
 
 def get_tx(db: MysqlDB):
@@ -102,7 +102,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return type_to_json(data)
 
     @classmethod
-    async def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
+    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
         """
         获取根据sorter_key倒叙第一个资源 sorter_key 默认id
         :param ctx:
@@ -115,14 +115,14 @@ class BaseDao(metaclass=DaoMetaClass):
         if query:
             sql = search_sql(sql, query, table)
         sql = sql.order_by(getattr(table.c, sorter_key, table.c.id).desc())
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        data = await res.first()
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
+        data = res.first()
         if not data:
             return None
         return cls.formatter(data)
 
     @classmethod
-    async def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
+    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
         """
         获取根据sorter_key倒叙最后一个资源 sorter_key 默认id
         :param ctx:
@@ -136,15 +136,15 @@ class BaseDao(metaclass=DaoMetaClass):
         if query:
             sql = search_sql(sql, query, table)
         sql = sql.order_by(getattr(table.c, sorter_key, table.c.id))
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
 
-        data = await res.first()
+        data = res.first()
         if not data:
             return None
         return cls.formatter(data)
 
     @classmethod
-    async def get(cls, ctx: dict = None, query=None):
+    def get(cls, ctx: dict = None, query=None):
         """
         获取单个资源 通常给予unique使用
         :param query:
@@ -155,14 +155,14 @@ class BaseDao(metaclass=DaoMetaClass):
         sql = select([table])
         if query:
             sql = search_sql(sql, query, table)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        data = await res.first()
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
+        data = res.first()
         if not data:
             return None
         return cls.formatter(data)
 
     @classmethod
-    async def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None):
+    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None):
         """
         通用查询
         :param query:
@@ -193,12 +193,12 @@ class BaseDao(metaclass=DaoMetaClass):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id).desc())
         else:
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        data = await res.fetchall()
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
+        data = res.fetchall()
         return list(map(cls.formatter, data))
 
     @classmethod
-    async def insert(cls, ctx: dict = None, data: dict = None):
+    def insert(cls, ctx: dict = None, data: dict = None):
         """
         通用插入
         :param tx:
@@ -208,11 +208,11 @@ class BaseDao(metaclass=DaoMetaClass):
         table = cls.__db__[cls.__tablename__]
         data = cls.reformatter(data)
         sql = table.insert().values(**data)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res.lastrowid
 
     @classmethod
-    async def count(cls, ctx: dict = None, query: dict = None):
+    def count(cls, ctx: dict = None, query: dict = None):
         """
         计数
         :param query:
@@ -224,16 +224,16 @@ class BaseDao(metaclass=DaoMetaClass):
         if query:
             sql = search_sql(sql, query, table)
 
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
-        return await res.scalar()
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
+        return res.scalar()
 
     @classmethod
-    async def execute(cls, ctx: dict = None, sql: str = ""):
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+    def execute(cls, ctx: dict = None, sql: str = ""):
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
     @classmethod
-    async def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None):
+    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None):
         """
         通用修改
         :param ctx:
@@ -250,11 +250,11 @@ class BaseDao(metaclass=DaoMetaClass):
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
         sql = sql.values(**data)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
     @classmethod
-    async def delete(cls, ctx: dict = None, where_dict: dict = None):
+    def delete(cls, ctx: dict = None, where_dict: dict = None):
         """
         通用删除
         :param ctx:
@@ -269,7 +269,7 @@ class BaseDao(metaclass=DaoMetaClass):
             for key, value in where_dict.items():
                 if hasattr(table.c, key):
                     sql = sql.where(getattr(table.c, key) == value)
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+        res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
 
@@ -305,7 +305,7 @@ class BusinessBaseDao(BaseDao):
         return new_data
 
     @classmethod
-    async def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, modify_by: str = ''):
+    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, modify_by: str = ''):
         """
         业务修改
         :param ctx:
@@ -316,10 +316,10 @@ class BusinessBaseDao(BaseDao):
         """
         data['updated_at'] = datetime.datetime.now()
         data['updated_by'] = modify_by
-        return await super().update(ctx=ctx, where_dict=where_dict, data=data)
+        return super().update(ctx=ctx, where_dict=where_dict, data=data)
 
     @classmethod
-    async def delete(cls, ctx: dict = None, where_dict: dict = None, modify_by: str = ''):
+    def delete(cls, ctx: dict = None, where_dict: dict = None, modify_by: str = ''):
         """
         业务删除
         :param ctx:
@@ -331,10 +331,10 @@ class BusinessBaseDao(BaseDao):
         data = dict()
         data['deleted_at'] = datetime.datetime.now()
         data['updated_by'] = modify_by
-        return await super().update(ctx=ctx, where_dict=where_dict, data=data)
+        return super().update(ctx=ctx, where_dict=where_dict, data=data)
 
     @classmethod
-    async def insert(cls, ctx: dict = None, data: dict = None, modify_by=''):
+    def insert(cls, ctx: dict = None, data: dict = None, modify_by=''):
         data['created_at'] = datetime.datetime.now()
         data['created_by'] = modify_by
-        return await super().insert(ctx=ctx, data=data)
+        return super().insert(ctx=ctx, data=data)
