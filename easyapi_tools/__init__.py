@@ -27,7 +27,7 @@ def add_business_field(mysql_db:easyapi.MysqlDB):
         ignore_err_execute("""ALTER TABLE {table} ADD created_at TIMESTAMP DEFAULT  NULL;""".format(table=table))
         ignore_err_execute("""ALTER TABLE {table} ADD updated_at TIMESTAMP DEFAULT  NULL;""".format(table=table))
         ignore_err_execute("""ALTER TABLE {table} ADD deleted_at TIMESTAMP DEFAULT  NULL;""".format(table=table))
-        ignore_err_execute("""ALTER TABLE {table} ADD updated_by VARCHAR(255) DEFAULT NULL;""".format(table=table))
-        ignore_err_execute("""ALTER TABLE {table} ADD created_by VARCHAR(255) DEFAULT NULL;""".format(table=table))
+        ignore_err_execute("""ALTER TABLE {table} ADD updated_by VARCHAR(255) DEFAULT '';""".format(table=table))
+        ignore_err_execute("""ALTER TABLE {table} ADD created_by VARCHAR(255) DEFAULT '';""".format(table=table))
 
 
