@@ -18,7 +18,8 @@ def get_engine(user, password, host, port, database, pool_size=100 ):
             port=port,
             database=database,
         ),
-        pool_size=pool_size
+        pool_size=pool_size,
+        pool_recycle=60, pool_pre_ping=True,
     )
     return engine
 
@@ -65,7 +66,7 @@ class MysqlDB(object):
         if ctx is not None:
             conn = ctx.get("connection", None)
         if conn is None:
-            with self._engine.connect() as conn:
+            with self._engine.connect(close_with_result=True) as conn:
                 return conn.execute(sql, *args, **kwargs)
         else:
             return conn.execute(sql, *args, **kwargs)
