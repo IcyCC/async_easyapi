@@ -109,6 +109,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param query:
         :return:
         """
+        if query is None:
+            query = {}
         query = cls.reformatter(query)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -130,6 +132,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param sorter_key:
         :return:
         """
+        if query is None:
+            query = {}
         query = cls.reformatter(query)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -150,6 +154,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param query:
         :return:
         """
+        if query is None:
+            query = {}
         query = cls.reformatter(query)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -170,6 +176,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param sorter:
         :return:
         """
+        if query is None:
+            query = {}
         query = cls.reformatter(query)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -198,13 +206,15 @@ class BaseDao(metaclass=DaoMetaClass):
         return list(map(cls.formatter, data))
 
     @classmethod
-    async def insert(cls, ctx: dict = None, data: dict = None):
+    async def insert(cls, data: dict, ctx: dict = None):
         """
         通用插入
         :param tx:
         :param args:
         :return:
         """
+        if data is None:
+            return None
         table = cls.__db__[cls.__tablename__]
         data = cls.reformatter(data)
         sql = table.insert().values(**data)
@@ -218,6 +228,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param query:
         :return:
         """
+        if query is None:
+            query = {}
         query = cls.reformatter(query)
         table = cls.__db__[cls.__tablename__]
         sql = select([func.count('*')], from_obj=table)
@@ -241,14 +253,15 @@ class BaseDao(metaclass=DaoMetaClass):
         :param data:
         :return:
         """
+        if where_dict is None:
+            where_dict = {}
         where_dict = cls.reformatter(where_dict)
         table = cls.__db__[cls.__tablename__]
         data = cls.reformatter(data)
         sql = table.update()
-        if where_dict is not None:
-            for key, value in where_dict.items():
-                if hasattr(table.c, key):
-                    sql = sql.where(getattr(table.c, key) == value)
+        for key, value in where_dict.items():
+            if hasattr(table.c, key):
+                sql = sql.where(getattr(table.c, key) == value)
         sql = sql.values(**data)
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
         return res
@@ -262,13 +275,14 @@ class BaseDao(metaclass=DaoMetaClass):
         :param data:
         :return:
         """
+        if where_dict is None:
+            where_dict = {}
         where_dict = cls.reformatter(where_dict)
         table = cls.__db__[cls.__tablename__]
         sql = table.delete()
-        if where_dict is not None:
-            for key, value in where_dict.items():
-                if hasattr(table.c, key):
-                    sql = sql.where(getattr(table.c, key) == value)
+        for key, value in where_dict.items():
+            if hasattr(table.c, key):
+                sql = sql.where(getattr(table.c, key) == value)
         res = await cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
@@ -327,6 +341,8 @@ class BusinessBaseDao(BaseDao):
         :param modify_by:
         :return:
         """
+        if where_dict is None:
+            where_dict = {}
         where_dict = cls.reformatter(where_dict)
         data = dict()
         data['deleted_at'] = datetime.datetime.now()
@@ -335,6 +351,8 @@ class BusinessBaseDao(BaseDao):
 
     @classmethod
     async def insert(cls, ctx: dict = None, data: dict = None, modify_by=''):
+        if data is None:
+            data = {}
         data['created_at'] = datetime.datetime.now()
         data['created_by'] = modify_by
         return await super().insert(ctx=ctx, data=data)
