@@ -1,0 +1,32 @@
+name: py37
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+  - defaults
+dependencies:
+  - libffi=3.2.1=1
+  - bzip2=1.0.6=h1de35cc_1002
+  - ca-certificates=2018.11.29=ha4d7672_0
+  - certifi=2018.11.29=py37_1000
+  - libcxx=7.0.0=h2d50403_2
+  - llvm-meta=7.0.0=0
+  - ncurses=6.1=h0a44026_1002
+  - openssl=1.0.2p=h1de35cc_1002
+  - pip=18.1=py37_1000
+  - python=3.7.1=h145921a_1000
+  - readline=7.0=hcfe32e1_1001
+  - setuptools=40.6.3=py37_0
+  - sqlalchemy=1.2.16=py37h1de35cc_1000
+  - sqlite=3.26.0=h1765d9f_1000
+  - tk=8.6.9=ha441bb4_1000
+  - wheel=0.32.3=py37_0
+  - xz=5.2.4=h1de35cc_1001
+  - zlib=1.2.11=h1de35cc_1004
+prefix: /Users/suchang/anaconda3/envs/py37
+
