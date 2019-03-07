@@ -20,11 +20,11 @@ class AbcPermission(metaclass=abc.ABCMeta):
     def fail(cls):
         raise NotImplementedError
 
-    def permission(cls, f, *args, **kwargs):
+    def permission(self, f, *args, **kwargs):
         @functools.wraps(f)
         def wrapper(*f_args, **f_kwargs):
-            if cls.check(*args, **kwargs):
+            if self.check(*args, **kwargs):
                 return f(*f_args, **f_kwargs)
             else:
-                return cls.fail()
+                return self.fail()
         return wrapper
