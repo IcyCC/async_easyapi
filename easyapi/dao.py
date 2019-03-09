@@ -296,12 +296,7 @@ class BusinessBaseDao(BaseDao):
         :param data:
         :return:
         """
-        ignore_columns = ['created_at', 'deleted_at', 'updated_at']
-        new_data = dict()
-        for key, value in data.items():
-            if key not in ignore_columns:
-                new_data[key] = value
-        return type_to_json(new_data)
+        return super().formatter(data)
 
     @classmethod
     def reformatter(cls, data: dict):
