@@ -30,14 +30,14 @@ class QuartHandlerMeta(views.MethodViewType):
 
 class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
 
-    async def get(self, id: int):
+    async def get(self, id: int,  *args, **kwargs):
         """
         获取单个资源
         :param id:
         :return:
         """
         try:
-            data = await self.__controller__.get(id=id)
+            data = await self.__controller__.get(id=id,  *args, **kwargs)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         if not data:
@@ -51,31 +51,31 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
             self.__resource__: data
         })
 
-    async def put(self, id):
+    async def put(self, id,  *args, **kwargs):
         """
         新增的路由
         :return:
         """
         body = await quart.request.json
         try:
-            await self.__controller__.update(id=id, data=body)
+            await self.__controller__.update(id=id, data=body,  *args, **kwargs)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         return quart.jsonify(code=200, msg='')
 
-    async def delete(self, id):
+    async def delete(self, id,  *args, **kwargs):
         """
         删除的路由
         :param id:
         :return:
         """
         try:
-            await self.__controller__.delete(id=id)
+            await self.__controller__.delete(id=id,  *args, **kwargs)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
         return quart.jsonify(code=200, msg='')
 
-    async def post(self):
+    async def post(self,  *args, **kwargs):
         """
         处理 查询和新增
         :return:
@@ -86,7 +86,7 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         if method == 'GET':
             query, pager, sorter = self.__url_condition__.parser(body.get("_args"))
             try:
-                res, count = await self.__controller__.query(query=query, pager=pager, sorter=sorter)
+                res, count = await self.__controller__.query(query=query, pager=pager, sorter=sorter,  *args, **kwargs)
 
             except BusinessError as e:
                 return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
@@ -97,8 +97,10 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
                 'total': count
             })
         else:
+            if '_method' in body:
+                del body['_method']
             try:
-                await self.__controller__.insert(body)
+                await self.__controller__.insert(body,  *args, **kwargs)
             except BusinessError as e:
                 return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
             return quart.jsonify(code=200, msg='')
