@@ -30,14 +30,14 @@ class FlaskHandlerMeta(views.MethodViewType):
 
 class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
 
-    def get(self, id: int):
+    def get(self, id: int, *args, **kwargs):
         """
         获取单个资源
         :param id:
         :return:
         """
         try:
-            data = self.__controller__.get(id=id)
+            data = self.__controller__.get(id=id, *args, **kwargs)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         if not data:
@@ -51,31 +51,31 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
             self.__resource__: data
         })
 
-    def put(self, id):
+    def put(self, id, *args, **kwargs):
         """
         新增的路由
         :return:
         """
         body = flask.request.json
         try:
-            self.__controller__.update(id=id, data=body)
+            self.__controller__.update(id=id, data=body, *args, **kwargs)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         return flask.jsonify(code=200, msg='')
 
-    def delete(self, id):
+    def delete(self, id, *args, **kwargs):
         """
         删除的路由
         :param id:
         :return:
         """
         try:
-            self.__controller__.delete(id=id)
+            self.__controller__.delete(id=id, *args, **kwargs)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         return flask.jsonify(code=200, msg='')
 
-    def post(self):
+    def post(self, *args, **kwargs):
         """
         处理 查询和新增
         :return:
@@ -86,7 +86,7 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
         if method == 'GET':
             query, pager, sorter = self.__url_condition__.parser(body.get("_args"))
             try:
-                res, count = self.__controller__.query(query=query, pager=pager, sorter=sorter)
+                res, count = self.__controller__.query(query=query, pager=pager, sorter=sorter, *args, **kwargs)
 
             except BusinessError as e:
                 return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
@@ -97,8 +97,10 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
                 'total': count
             })
         else:
+            if '_method' in body:
+                del body['_method']
             try:
-                self.__controller__.insert(body)
+                self.__controller__.insert(body, *args, **kwargs)
             except BusinessError as e:
                 return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
             return flask.jsonify(code=200, msg='')

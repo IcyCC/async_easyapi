@@ -34,7 +34,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return data
 
     @classmethod
-    def get(cls, id: int):
+    def get(cls, id: int, *args, **kwargs):
         """
         获取单个资源
         :param id:
@@ -50,7 +50,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return cls.formatter(data)
 
     @classmethod
-    def query(cls, query: dict, pager: dict, sorter: dict) -> (list, dict):
+    def query(cls, query: dict, pager: dict, sorter: dict, *args, **kwargs) -> (list, dict):
         """
         获取多个资源
         :param filter_dict:
@@ -67,7 +67,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return list(map(cls.formatter, res)), total
 
     @classmethod
-    def insert(cls, data: dict):
+    def insert(cls, data: dict, *args, **kwargs):
         """
         插入单个资源
         :param body:
@@ -84,7 +84,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return res
 
     @classmethod
-    def update(cls, id: int, data: dict):
+    def update(cls, id: int, data: dict, *args, **kwargs):
         """
         修改单个资源
         :param id:
@@ -103,7 +103,7 @@ class BaseController(metaclass=ControllerMetaClass):
         return res
 
     @classmethod
-    def delete(cls, id: int):
+    def delete(cls, id: int, *args, **kwargs):
         """
         删除单个资源
         :param id:
