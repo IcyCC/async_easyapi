@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.pool import QueuePool
 
 
-def get_engine(user, password, host, port, database, pool_size=100 ):
+def get_engine(user, password, host, port, database, pool_size=100):
     print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
         user=user,
         password=password,
