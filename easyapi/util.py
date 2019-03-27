@@ -1,6 +1,6 @@
 import abc
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, date, time
 
 
 def str2hump(listx):
@@ -26,6 +26,10 @@ def type_to_json(data):
             new_data[key] = float(value)
         elif isinstance(value, datetime):
             new_data[key] = str(value)
+        elif isinstance(value, date):
+            new_data[key] = str(value)
+        elif isinstance(value, time):
+            new_data[key] = str(time)
         else:
             new_data[key] = value
     return new_data
