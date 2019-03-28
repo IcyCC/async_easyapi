@@ -1,8 +1,6 @@
-import functools
-from sqlalchemy.sql import select, and_, func, between, distinct, text
-from .util import str2hump, type_to_json
+from sqlalchemy.sql import select, func
+from easyapi_tools.util import str2hump, type_to_json
 from .db_util import MysqlDB
-from sqlalchemy.exc import NoSuchColumnError
 import datetime
 
 
