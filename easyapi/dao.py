@@ -1,10 +1,8 @@
-import functools
-from sqlalchemy.sql import select, and_, func, between, distinct, text
-from .util import str2hump, type_to_json
-from .db_util import MysqlDB
-from sqlalchemy.exc import NoSuchColumnError
 import datetime
-
+import functools
+from sqlalchemy.sql import select, func
+from easyapi_tools.util import str2hump, type_to_json
+from .db_util import MysqlDB
 
 class Transaction():
     def __init__(self, db: MysqlDB):
@@ -84,7 +82,7 @@ class DaoMetaClass(type):
 
 class BaseDao(metaclass=DaoMetaClass):
     @classmethod
-    def reformatter(cls, data: dict):
+    def reformatter(cls, data: dict, *args, **kwargs):
         """
         将model数据转换成dao数据
         :param data:
@@ -93,7 +91,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return data
 
     @classmethod
-    def formatter(cls, data: dict):
+    def formatter(cls, data: dict, *args, **kwargs):
         """
         将dao数据转换成model数据
         :param data:
@@ -102,7 +100,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return type_to_json(data)
 
     @classmethod
-    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
+    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', *args, **kwargs):
         """
         获取根据sorter_key倒叙第一个资源 sorter_key 默认id
         :param ctx:
@@ -120,10 +118,10 @@ class BaseDao(metaclass=DaoMetaClass):
         data = res.first()
         if not data:
             return None
-        return cls.formatter(data)
+        return cls.formatter(data, *args, **kwargs)
 
     @classmethod
-    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id'):
+    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id', *args, **kwargs):
         """
         获取根据sorter_key倒叙最后一个资源 sorter_key 默认id
         :param ctx:
@@ -133,7 +131,7 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
-        query = cls.reformatter(query)
+        query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
         if query:
@@ -144,10 +142,10 @@ class BaseDao(metaclass=DaoMetaClass):
         data = res.first()
         if not data:
             return None
-        return cls.formatter(data)
+        return cls.formatter(data, *args, **kwargs)
 
     @classmethod
-    def get(cls, ctx: dict = None, query=None):
+    def get(cls, ctx: dict = None, query=None, *args, **kwargs):
         """
         获取单个资源 通常给予unique使用
         :param query:
@@ -155,7 +153,7 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
-        query = cls.reformatter(query)
+        query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
         if query:
@@ -164,10 +162,10 @@ class BaseDao(metaclass=DaoMetaClass):
         data = res.first()
         if not data:
             return None
-        return cls.formatter(data)
+        return cls.formatter(data, *args, **kwargs)
 
     @classmethod
-    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None):
+    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None, *args, **kwargs):
         """
         通用查询
         :param query:
@@ -177,7 +175,7 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
-        query = cls.reformatter(query)
+        query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
         if query:
@@ -202,10 +200,10 @@ class BaseDao(metaclass=DaoMetaClass):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         data = res.fetchall()
-        return list(map(cls.formatter, data))
+        return list(map(functools.partial(cls.formatter, *args, **kwargs), data))
 
     @classmethod
-    def insert(cls, data: dict, ctx: dict = None):
+    def insert(cls, data: dict, ctx: dict = None, *args, **kwargs):
         """
         通用插入
         :param tx:
@@ -215,13 +213,13 @@ class BaseDao(metaclass=DaoMetaClass):
         if data is None:
             return None
         table = cls.__db__[cls.__tablename__]
-        data = cls.reformatter(data)
+        data = cls.reformatter(data, *args, **kwargs)
         sql = table.insert().values(**data)
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res.lastrowid
 
     @classmethod
-    def count(cls, ctx: dict = None, query: dict = None):
+    def count(cls, ctx: dict = None, query: dict = None, *args, **kwargs):
         """
         计数
         :param query:
@@ -229,7 +227,7 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
-        query = cls.reformatter(query)
+        query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([func.count('*')], from_obj=table)
         if query:
@@ -239,12 +237,12 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.scalar()
 
     @classmethod
-    def execute(cls, ctx: dict = None, sql: str = ""):
+    def execute(cls, ctx: dict = None, sql: str = "", *args, **kwargs):
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
     @classmethod
-    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None):
+    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, *args, **kwargs):
         """
         通用修改
         :param ctx:
@@ -254,9 +252,9 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if where_dict is None:
             where_dict = {}
-        where_dict = cls.reformatter(where_dict)
+        where_dict = cls.reformatter(where_dict, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
-        data = cls.reformatter(data)
+        data = cls.reformatter(data, *args, **kwargs)
         sql = table.update()
         if where_dict is not None:
             for key, value in where_dict.items():
@@ -267,7 +265,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res
 
     @classmethod
-    def delete(cls, ctx: dict = None, where_dict: dict = None):
+    def delete(cls, ctx: dict = None, where_dict: dict = None, *args, **kwargs):
         """
         通用删除
         :param ctx:
@@ -277,7 +275,7 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if where_dict is None:
             where_dict = {}
-        where_dict = cls.reformatter(where_dict)
+        where_dict = cls.reformatter(where_dict, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = table.delete()
         for key, value in where_dict.items():
@@ -290,7 +288,7 @@ class BaseDao(metaclass=DaoMetaClass):
 class BusinessBaseDao(BaseDao):
 
     @classmethod
-    def formatter(cls, data: dict):
+    def formatter(cls, data: dict, *args, **kwargs):
         """
         将dao数据转换成model数据
         :param data:
@@ -299,22 +297,23 @@ class BusinessBaseDao(BaseDao):
         return super().formatter(data)
 
     @classmethod
-    def reformatter(cls, data: dict):
+    def reformatter(cls, data: dict, *args, **kwargs):
         """
         将model数据转换成dao数据
         :param data:
+            unscoped: 是否处理软删除
         :return:
         """
         new_data = dict()
         for key, value in data.items():
             new_data[key] = value
-        unscoped = data.get('unscoped', False)
-        if not unscoped and 'deleted_at' not in data:
+        if not kwargs.get('unscoped', False) and 'deleted_at' not in data:
             new_data['deleted_at'] = None
-        return new_data
+        return super().reformatter(new_data)
 
     @classmethod
-    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, modify_by: str = ''):
+    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, unscoped=False,
+               modify_by: str = '', ):
         """
         业务修改
         :param ctx:
@@ -325,10 +324,10 @@ class BusinessBaseDao(BaseDao):
         """
         data['updated_at'] = datetime.datetime.now()
         data['updated_by'] = modify_by
-        return super().update(ctx=ctx, where_dict=where_dict, data=data)
+        return super().update(ctx=ctx, where_dict=where_dict, data=data, unscoped=unscoped)
 
     @classmethod
-    def delete(cls, ctx: dict = None, where_dict: dict = None, modify_by: str = ''):
+    def delete(cls, ctx: dict = None, where_dict: dict = None, unscoped=False, modify_by: str = ''):
         """
         业务删除
         :param ctx:
@@ -338,16 +337,15 @@ class BusinessBaseDao(BaseDao):
         """
         if where_dict is None:
             where_dict = {}
-        where_dict = cls.reformatter(where_dict)
         data = dict()
         data['deleted_at'] = datetime.datetime.now()
         data['updated_by'] = modify_by
-        return super().update(ctx=ctx, where_dict=where_dict, data=data)
+        return super().update(ctx=ctx, where_dict=where_dict, data=data, unscoped=unscoped)
 
     @classmethod
-    def insert(cls, ctx: dict = None, data: dict = None, modify_by=''):
+    def insert(cls, ctx: dict = None, data: dict = None, modify_by='', unscoped=False):
         if data is None:
             data = {}
         data['created_at'] = datetime.datetime.now()
         data['created_by'] = modify_by
-        return super().insert(ctx=ctx, data=data)
+        return super().insert(ctx=ctx, data=data, unscoped=unscoped)
