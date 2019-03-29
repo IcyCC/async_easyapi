@@ -25,7 +25,7 @@ def get_mysql_engine(user, password, host, port, database, pool_size=100):
 
 
 def get_postgre_engine(user, password, host, port, database, pool_size=100):
-    print('postgresql+psycopg2://{user}:{password}@{host}/{database}?charset=utf-8'.format(
+    print('postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}'.format(
         user=user,
         password=password,
         host=host,  # your host
@@ -33,7 +33,7 @@ def get_postgre_engine(user, password, host, port, database, pool_size=100):
         database=database,
     ))
     engine = create_engine(
-        'postgresql+psycopg2://{user}:{password}@{host}/{database}?charset=utf-8'.format(
+        'postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}'.format(
             user=user,
             password=password,
             host=host,  # your host
