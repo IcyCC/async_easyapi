@@ -263,7 +263,7 @@ class BaseDao(metaclass=DaoMetaClass):
                     sql = sql.where(getattr(table.c, key) == value)
         sql = sql.values(**data)
         res = cls.__db__.execute(ctx=ctx, sql=sql)
-        return res.inserted_primary_key
+        return res.rowcount
 
     @classmethod
     def delete(cls, ctx: dict = None, where_dict: dict = None, *args, **kwargs):
@@ -283,7 +283,7 @@ class BaseDao(metaclass=DaoMetaClass):
             if hasattr(table.c, key):
                 sql = sql.where(getattr(table.c, key) == value)
         res = cls.__db__.execute(ctx=ctx, sql=sql)
-        return res.inserted_primary_key
+        return res.rowcount
 
 
 class BusinessBaseDao(BaseDao):
