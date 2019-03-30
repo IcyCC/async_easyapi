@@ -2,6 +2,7 @@ import datetime
 import functools
 from sqlalchemy.sql import select, func
 from easyapi_tools.util import str2hump, type_to_json
+from easyapi_tools.errors import BusinessError
 from .db_util import MysqlDB
 
 class Transaction():
@@ -216,7 +217,7 @@ class BaseDao(metaclass=DaoMetaClass):
         data = cls.reformatter(data, *args, **kwargs)
         sql = table.insert().values(**data)
         res = cls.__db__.execute(ctx=ctx, sql=sql)
-        return res.lastrowid
+        return res.inserted_primary_key[0]
 
     @classmethod
     def count(cls, ctx: dict = None, query: dict = None, *args, **kwargs):
@@ -262,7 +263,7 @@ class BaseDao(metaclass=DaoMetaClass):
                     sql = sql.where(getattr(table.c, key) == value)
         sql = sql.values(**data)
         res = cls.__db__.execute(ctx=ctx, sql=sql)
-        return res
+        return res.inserted_primary_key
 
     @classmethod
     def delete(cls, ctx: dict = None, where_dict: dict = None, *args, **kwargs):
@@ -282,7 +283,7 @@ class BaseDao(metaclass=DaoMetaClass):
             if hasattr(table.c, key):
                 sql = sql.where(getattr(table.c, key) == value)
         res = cls.__db__.execute(ctx=ctx, sql=sql)
-        return res
+        return res.inserted_primary_key
 
 
 class BusinessBaseDao(BaseDao):
