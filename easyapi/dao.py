@@ -5,6 +5,7 @@ from easyapi_tools.util import str2hump, type_to_json
 from easyapi_tools.errors import BusinessError
 from .db_util import MysqlDB
 
+
 class Transaction():
     def __init__(self, db: MysqlDB):
         self._db = db
@@ -106,6 +107,9 @@ class BaseDao(metaclass=DaoMetaClass):
         获取根据sorter_key倒叙第一个资源 sorter_key 默认id
         :param ctx:
         :param query:
+        :param sorter_key:
+        :param args:
+        :param kwargs:
         :return:
         """
         if query is None:
@@ -148,8 +152,11 @@ class BaseDao(metaclass=DaoMetaClass):
     @classmethod
     def get(cls, ctx: dict = None, query=None, *args, **kwargs):
         """
-        获取单个资源 通常给予unique使用
+        通用get查询
+        :param ctx:
         :param query:
+        :param args:
+        :param kwargs:
         :return:
         """
         if query is None:
@@ -168,10 +175,13 @@ class BaseDao(metaclass=DaoMetaClass):
     @classmethod
     def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None, *args, **kwargs):
         """
-        通用查询
+        通用query查询
+        :param ctx:
         :param query:
         :param pager:
         :param sorter:
+        :param args:
+        :param kwargs:
         :return:
         """
         if query is None:
@@ -204,11 +214,13 @@ class BaseDao(metaclass=DaoMetaClass):
         return list(map(functools.partial(cls.formatter, *args, **kwargs), data))
 
     @classmethod
-    def insert(cls, data: dict, ctx: dict = None, *args, **kwargs):
+    def insert(cls, ctx: dict = None, data: dict = None, *args, **kwargs):
         """
         通用插入
-        :param tx:
+        :param ctx:
+        :param data:
         :param args:
+        :param kwargs:
         :return:
         """
         if data is None:
@@ -222,8 +234,11 @@ class BaseDao(metaclass=DaoMetaClass):
     @classmethod
     def count(cls, ctx: dict = None, query: dict = None, *args, **kwargs):
         """
-        计数
+        插入
+        :param ctx:
         :param query:
+        :param args:
+        :param kwargs:
         :return:
         """
         if query is None:
@@ -239,6 +254,14 @@ class BaseDao(metaclass=DaoMetaClass):
 
     @classmethod
     def execute(cls, ctx: dict = None, sql: str = "", *args, **kwargs):
+        """
+        直接执行sql
+        :param ctx:
+        :param sql:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         return res
 
@@ -247,8 +270,10 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         通用修改
         :param ctx:
-        :param primay_key:
+        :param where_dict:
         :param data:
+        :param args:
+        :param kwargs:
         :return:
         """
         if where_dict is None:
@@ -305,27 +330,26 @@ class BusinessBaseDao(BaseDao):
             unscoped: 是否处理软删除
         :return:
         """
-        new_data = dict()
-        for key, value in data.items():
-            new_data[key] = value
-        if not kwargs.get('unscoped', False) and 'deleted_at' not in data:
-            new_data['deleted_at'] = None
-        return super().reformatter(new_data)
+        return super().reformatter(data)
 
     @classmethod
-    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, unscoped=False,
-               modify_by: str = '', ):
+    def update(cls, ctx: dict = None, where_dict: dict = None, data: dict = None, unscoped=False, modify_by: str = ''):
         """
         业务修改
         :param ctx:
         :param where_dict: 修改数据的条件
+        :param unscoped: 查询软删除
         :param data: 修改的数据
         :param modify_by: 修改用户
         :return:
         """
+        if where_dict is None:
+            where_dict = {}
         data['updated_at'] = datetime.datetime.now()
         data['updated_by'] = modify_by
-        return super().update(ctx=ctx, where_dict=where_dict, data=data, unscoped=unscoped)
+        if not unscoped:
+            where_dict['deleted_at'] = None
+        return super().update(ctx=ctx, where_dict=where_dict, data=data)
 
     @classmethod
     def delete(cls, ctx: dict = None, where_dict: dict = None, unscoped=False, modify_by: str = ''):
@@ -333,6 +357,7 @@ class BusinessBaseDao(BaseDao):
         业务删除
         :param ctx:
         :param where_dict:
+        :param unscoped:
         :param modify_by:
         :return:
         """
@@ -341,12 +366,96 @@ class BusinessBaseDao(BaseDao):
         data = dict()
         data['deleted_at'] = datetime.datetime.now()
         data['updated_by'] = modify_by
-        return super().update(ctx=ctx, where_dict=where_dict, data=data, unscoped=unscoped)
+        if not unscoped:
+            where_dict['deleted_at'] = None
+        return super().update(ctx=ctx, where_dict=where_dict, data=data)
 
     @classmethod
-    def insert(cls, ctx: dict = None, data: dict = None, modify_by='', unscoped=False):
+    def insert(cls, ctx: dict = None, data: dict = None, modify_by='', *args, **kwargs):
+        """
+        业务插入
+        :param ctx:
+        :param data:
+        :param modify_by:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if data is None:
             data = {}
         data['created_at'] = datetime.datetime.now()
         data['created_by'] = modify_by
-        return super().insert(ctx=ctx, data=data, unscoped=unscoped)
+        return super().insert(ctx=ctx, data=data)
+
+    @classmethod
+    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', unscoped=False, *args, **kwargs):
+        """
+        业务查询first
+        :param ctx:
+        :param query:
+        :param sorter_key:
+        :param unscoped:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if query is None:
+            query = {}
+        if not unscoped:
+            query['deleted_at'] = None
+        return super().first(ctx=ctx, query=query, sorter_key=sorter_key, *args, **kwargs)
+
+    @classmethod
+    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id', unscoped=False, *args, **kwargs):
+        """
+        业务查询last
+        :param ctx:
+        :param query:
+        :param sorter_key:
+        :param unscoped:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if query is None:
+            query = {}
+        if not unscoped:
+            query['deleted_at'] = None
+        return super().last(ctx=ctx, query=query, sorter_key=sorter_key, *args, **kwargs)
+
+    @classmethod
+    def get(cls, ctx: dict = None, query=None, unscoped=False, *args, **kwargs):
+        """
+        业务查询get
+        :param ctx:
+        :param query:
+        :param unscoped:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if query is None:
+            query = {}
+        if not unscoped:
+            query['deleted_at'] = None
+        return super().get(ctx=ctx, query=query, *args, **kwargs)
+
+    @classmethod
+    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None, unscoped=False, *args,
+              **kwargs):
+        """
+        业务查询query
+        :param ctx:
+        :param query:
+        :param pager:
+        :param sorter:
+        :param unscoped:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if query is None:
+            query = {}
+        if not unscoped:
+            query['deleted_at'] = None
+        return super().query(ctx=ctx, dict=dict, query=query, pager=pager, sorter=sorter, *args, **kwargs)
