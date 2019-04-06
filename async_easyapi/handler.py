@@ -58,10 +58,10 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         """
         body = await quart.request.json
         try:
-            await self.__controller__.update(id=id, data=body,  *args, **kwargs)
+            count = await self.__controller__.update(id=id, data=body,  *args, **kwargs)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-        return quart.jsonify(code=200, msg='')
+        return quart.jsonify(code=200, count=count, msg='')
 
     async def delete(self, id,  *args, **kwargs):
         """
@@ -70,10 +70,10 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
         :return:
         """
         try:
-            await self.__controller__.delete(id=id,  *args, **kwargs)
+            count = await self.__controller__.delete(id=id,  *args, **kwargs)
         except BusinessError as e:
             return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-        return quart.jsonify(code=200, msg='')
+        return quart.jsonify(code=200, count=count, msg='')
 
     async def post(self,  *args, **kwargs):
         """
@@ -100,10 +100,10 @@ class QuartBaseHandler(views.MethodView, metaclass=QuartHandlerMeta):
             if '_method' in body:
                 del body['_method']
             try:
-                await self.__controller__.insert(body,  *args, **kwargs)
+                _id = await self.__controller__.insert(body,  *args, **kwargs)
             except BusinessError as e:
                 return quart.jsonify(code=e.code, msg=e.err_info), e.http_code
-            return quart.jsonify(code=200, msg='')
+            return quart.jsonify(code=200, id=_id, msg='')
 
 
 def register_api(app, view, endpoint: str, url: str, pk='id', pk_type='int'):

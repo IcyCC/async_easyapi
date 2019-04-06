@@ -55,10 +55,10 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
         """
         body = flask.request.json
         try:
-            self.__controller__.update(id=id, data=body, *args, **kwargs)
+            count = self.__controller__.update(id=id, data=body, *args, **kwargs)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
-        return flask.jsonify(code=200, msg='')
+        return flask.jsonify(code=200, count=count, msg='')
 
     def delete(self, id, *args, **kwargs):
         """
@@ -67,10 +67,10 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
         :return:
         """
         try:
-            self.__controller__.delete(id=id, *args, **kwargs)
+            count = self.__controller__.delete(id=id, *args, **kwargs)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
-        return flask.jsonify(code=200, msg='')
+        return flask.jsonify(code=200, count=count, msg='')
 
     def post(self, *args, **kwargs):
         """
@@ -97,10 +97,10 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
             if '_method' in body:
                 del body['_method']
             try:
-                self.__controller__.insert(body, *args, **kwargs)
+                _id = self.__controller__.insert(body, *args, **kwargs)
             except BusinessError as e:
                 return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
-            return flask.jsonify(code=200, msg='')
+            return flask.jsonify(code=200, id=_id, msg='')
 
 
 def register_api(app, view, endpoint: str, url: str, pk='id', pk_type='int'):
