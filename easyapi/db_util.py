@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.pool import QueuePool
 
 
-def get_mysql_engine(user, password, host, port, database, pool_size=100):
+def get_mysql_engine(user, password, host, port, database, pool_size=100, echo=False):
     print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
         user=user,
         password=password,
@@ -19,12 +19,14 @@ def get_mysql_engine(user, password, host, port, database, pool_size=100):
             database=database,
         ),
         pool_size=pool_size,
-        pool_recycle=60, pool_pre_ping=True,
+        pool_recycle=60,
+        pool_pre_ping=True,
+        echo=echo
     )
     return engine
 
 
-def get_postgre_engine(user, password, host, port, database, pool_size=100):
+def get_postgre_engine(user, password, host, port, database, pool_size=100, echo=False):
     print('postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}'.format(
         user=user,
         password=password,
@@ -41,7 +43,9 @@ def get_postgre_engine(user, password, host, port, database, pool_size=100):
             database=database,
         ),
         pool_size=pool_size,
-        pool_recycle=60, pool_pre_ping=True,
+        pool_recycle=60,
+        pool_pre_ping=True,
+        echo=echo
     )
     return engine
 
@@ -51,7 +55,7 @@ class MysqlDB(object):
     用于操作 mysql 的db对象
     """
 
-    def __init__(self, user, password, host, port, database):
+    def __init__(self, user, password, host, port, database, echo=False):
         self.user = user
         self.password = password
         self.host = host
@@ -61,10 +65,11 @@ class MysqlDB(object):
         self._sync_engine = None
         self._metadata = None
         self._tables = None
+        self.echo = echo
 
     def connect(self):
         self._engine = get_mysql_engine(user=self.user, password=self.password, host=self.host, port=self.port,
-                                        database=self.database)
+                                        database=self.database, echo=self.echo)
         self._metadata = MetaData(self._engine)
         self._metadata.reflect(bind=self._engine)
         self._tables = self._metadata.tables
