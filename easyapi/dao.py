@@ -102,7 +102,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return type_to_json(data)
 
     @classmethod
-    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', formatter: function = None, *args, **kwargs):
+    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', formatter=None, *args, **kwargs):
         """
         获取根据sorter_key倒叙第一个资源 sorter_key 默认id
         :param ctx:
@@ -471,5 +471,5 @@ class BusinessBaseDao(BaseDao):
             query = {}
         if not unscoped:
             query['deleted_at'] = None
-        return super().query(ctx=ctx, dict=dict, query=query, pager=pager, sorter=sorter, formatter=formatter * args,
+        return super().query(ctx=ctx, dict=dict, query=query, pager=pager, sorter=sorter, formatter=formatter ,*args,
                              **kwargs)
