@@ -102,7 +102,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return type_to_json(data)
 
     @classmethod
-    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', *args, **kwargs):
+    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', formatter: function = None, *args, **kwargs):
         """
         获取根据sorter_key倒叙第一个资源 sorter_key 默认id
         :param ctx:
@@ -114,6 +114,9 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
+
+        if formatter is None:
+            formatter = cls.formatter
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
         if query:
@@ -123,10 +126,10 @@ class BaseDao(metaclass=DaoMetaClass):
         data = res.first()
         if not data:
             return None
-        return cls.formatter(data, *args, **kwargs)
+        return formatter(data, *args, **kwargs)
 
     @classmethod
-    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id', *args, **kwargs):
+    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id', formatter=None, *args, **kwargs):
         """
         获取根据sorter_key倒叙最后一个资源 sorter_key 默认id
         :param ctx:
@@ -136,6 +139,8 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
+        if formatter is None:
+            formatter = cls.formatter
         query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -147,10 +152,10 @@ class BaseDao(metaclass=DaoMetaClass):
         data = res.first()
         if not data:
             return None
-        return cls.formatter(data, *args, **kwargs)
+        return formatter(data, *args, **kwargs)
 
     @classmethod
-    def get(cls, ctx: dict = None, query=None, *args, **kwargs):
+    def get(cls, ctx: dict = None, query=None, formatter=None, *args, **kwargs):
         """
         通用get查询
         :param ctx:
@@ -161,6 +166,8 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
+        if formatter is None:
+            formatter = cls.formatter
         query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -170,10 +177,11 @@ class BaseDao(metaclass=DaoMetaClass):
         data = res.first()
         if not data:
             return None
-        return cls.formatter(data, *args, **kwargs)
+        return formatter(data, *args, **kwargs)
 
     @classmethod
-    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None, *args, **kwargs):
+    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None, formatter=None, *args,
+              **kwargs):
         """
         通用query查询
         :param ctx:
@@ -186,6 +194,8 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if query is None:
             query = {}
+        if formatter is None:
+            formatter = cls.formatter
         query = cls.reformatter(query, *args, **kwargs)
         table = cls.__db__[cls.__tablename__]
         sql = select([table])
@@ -211,7 +221,7 @@ class BaseDao(metaclass=DaoMetaClass):
             sql = sql.order_by(getattr(table.c, order_by, table.c.id))
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         data = res.fetchall()
-        return list(map(functools.partial(cls.formatter, *args, **kwargs), data))
+        return list(map(functools.partial(formatter, *args, **kwargs), data))
 
     @classmethod
     def insert(cls, ctx: dict = None, data: dict = None, *args, **kwargs):
@@ -388,7 +398,8 @@ class BusinessBaseDao(BaseDao):
         return super().insert(ctx=ctx, data=data)
 
     @classmethod
-    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', unscoped=False, *args, **kwargs):
+    def first(cls, ctx: dict = None, query=None, sorter_key: str = 'id', unscoped=False, formatter=None, *args,
+              **kwargs):
         """
         业务查询first
         :param ctx:
@@ -403,10 +414,11 @@ class BusinessBaseDao(BaseDao):
             query = {}
         if not unscoped:
             query['deleted_at'] = None
-        return super().first(ctx=ctx, query=query, sorter_key=sorter_key, *args, **kwargs)
+        return super().first(ctx=ctx, query=query, sorter_key=sorter_key, formatter=formatter, *args, **kwargs)
 
     @classmethod
-    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id', unscoped=False, *args, **kwargs):
+    def last(cls, ctx: dict = None, query=None, sorter_key: str = 'id', unscoped=False, formatter=None, *args,
+             **kwargs):
         """
         业务查询last
         :param ctx:
@@ -421,10 +433,10 @@ class BusinessBaseDao(BaseDao):
             query = {}
         if not unscoped:
             query['deleted_at'] = None
-        return super().last(ctx=ctx, query=query, sorter_key=sorter_key, *args, **kwargs)
+        return super().last(ctx=ctx, query=query, sorter_key=sorter_key, formatter=formatter, *args, **kwargs)
 
     @classmethod
-    def get(cls, ctx: dict = None, query=None, unscoped=False, *args, **kwargs):
+    def get(cls, ctx: dict = None, query=None, unscoped=False, formatter=None, *args, **kwargs):
         """
         业务查询get
         :param ctx:
@@ -438,10 +450,11 @@ class BusinessBaseDao(BaseDao):
             query = {}
         if not unscoped:
             query['deleted_at'] = None
-        return super().get(ctx=ctx, query=query, *args, **kwargs)
+        return super().get(ctx=ctx, query=query, formatter=formatter, *args, **kwargs)
 
     @classmethod
-    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, sorter: dict = None, unscoped=False, *args,
+    def query(cls, ctx: dict = None, query: dict = None, pager: dict = None, formatter=None, sorter: dict = None,
+              unscoped=False, *args,
               **kwargs):
         """
         业务查询query
@@ -458,4 +471,5 @@ class BusinessBaseDao(BaseDao):
             query = {}
         if not unscoped:
             query['deleted_at'] = None
-        return super().query(ctx=ctx, dict=dict, query=query, pager=pager, sorter=sorter, *args, **kwargs)
+        return super().query(ctx=ctx, dict=dict, query=query, pager=pager, sorter=sorter, formatter=formatter * args,
+                             **kwargs)
