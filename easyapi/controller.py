@@ -40,7 +40,7 @@ class BaseController(metaclass=ControllerMetaClass):
         :return:
         """
         query = {"id": id}
-        query.update(kwargs.get("query"))
+        query.update(kwargs.get("query", {}))
         try:
             data = cls.__dao__.get(query=query)
         except (OperationalError, IntegrityError, DataError) as e:
@@ -97,7 +97,7 @@ class BaseController(metaclass=ControllerMetaClass):
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id}
-        query.update(kwargs.get("query"))
+        query.update(kwargs.get("query", {}))
         try:
             res = cls.__dao__.update(where_dict=query, data=data)
         except (OperationalError, IntegrityError, DataError) as e:
@@ -114,7 +114,7 @@ class BaseController(metaclass=ControllerMetaClass):
         """
 
         query = {"id": id}
-        query.update(kwargs.get("query"))
+        query.update(kwargs.get("query", {}))
         try:
             res = cls.__dao__.delete(where_dict=query)
         except (OperationalError, IntegrityError, DataError) as e:
