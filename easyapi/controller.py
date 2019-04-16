@@ -36,9 +36,11 @@ class BaseController(metaclass=ControllerMetaClass):
         """
         获取单个资源
         :param id:
+        :param query: 附加的查询
         :return:
         """
         query = {"id": id}
+        query.update(kwargs.get("query"))
         try:
             data = cls.__dao__.get(query=query)
         except (OperationalError, IntegrityError, DataError) as e:
@@ -87,6 +89,7 @@ class BaseController(metaclass=ControllerMetaClass):
         修改单个资源
         :param id:
         :param data:
+        :param query: 附加的查询
         :return:
         """
         if cls.__validator__ is not None:
@@ -94,6 +97,7 @@ class BaseController(metaclass=ControllerMetaClass):
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id}
+        query.update(kwargs.get("query"))
         try:
             res = cls.__dao__.update(where_dict=query, data=data)
         except (OperationalError, IntegrityError, DataError) as e:
@@ -104,11 +108,13 @@ class BaseController(metaclass=ControllerMetaClass):
     def delete(cls, id: int, *args, **kwargs):
         """
         删除单个资源
+        :param query: 附加的查询
         :param id:
         :return:
         """
 
         query = {"id": id}
+        query.update(kwargs.get("query"))
         try:
             res = cls.__dao__.delete(where_dict=query)
         except (OperationalError, IntegrityError, DataError) as e:
