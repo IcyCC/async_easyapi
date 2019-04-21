@@ -241,8 +241,8 @@ class BaseDao(metaclass=DaoMetaClass):
         return await res.scalar()
 
     @classmethod
-    async def execute(cls, ctx: dict = None, sql: str = ""):
-        res = await cls.__db__.execute(ctx=ctx, sql=sql)
+    async def execute(cls, ctx: dict = None, sql: str = "", *args, **kwargs):
+        res = await cls.__db__.execute(ctx=ctx, sql=sql, *args, **kwargs)
         return res
 
     @classmethod

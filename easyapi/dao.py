@@ -263,7 +263,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.scalar()
 
     @classmethod
-    def execute(cls, ctx: dict = None, sql: str = "", *args, **kwargs):
+    def execute(cls, ctx: dict = None, sql='SELECT 1',  *args, **kwargs):
         """
         直接执行sql
         :param ctx:
@@ -272,7 +272,7 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
-        res = cls.__db__.execute(ctx=ctx, sql=sql)
+        res = cls.__db__.execute(ctx=ctx, sql=sql, *args, **kwargs)
         return res
 
     @classmethod
