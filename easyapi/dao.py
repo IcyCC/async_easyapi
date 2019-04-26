@@ -146,7 +146,7 @@ class BaseDao(metaclass=DaoMetaClass):
         sql = select([table])
         if query:
             sql = search_sql(sql, query, table)
-        sql = sql.order_by(getattr(table.c, sorter_key, table.c.id))
+        sql = sql.order_by(getattr(table.c, sorter_key, table.c.id).desc())
         res = cls.__db__.execute(ctx=ctx, sql=sql)
 
         data = res.first()
