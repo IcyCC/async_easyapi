@@ -173,6 +173,7 @@ class BaseDao(metaclass=DaoMetaClass):
         sql = select([table])
         if query:
             sql = search_sql(sql, query, table)
+        sql = sql.order_by(table.c.id.desc())
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         data = res.first()
         if not data:
