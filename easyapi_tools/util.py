@@ -25,11 +25,11 @@ def type_to_json(data):
         if isinstance(value, Decimal):
             new_data[key] = float(value)
         elif isinstance(value, datetime):
-            new_data[key] = str(value)
+            new_data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
         elif isinstance(value, date):
-            new_data[key] = str(value)
+            new_data[key] = value.strftime("%Y-%m-%d")
         elif isinstance(value, time):
-            new_data[key] = str(time)
+            new_data[key] = value.strftime("%H:%M:%S")
         else:
             new_data[key] = value
     return new_data
