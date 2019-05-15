@@ -6,31 +6,6 @@ from easyapi_tools.errors import BusinessError
 from .db_util import MysqlDB
 
 
-class Transaction():
-    def __init__(self, db: MysqlDB):
-        self._db = db
-        self._transaction = None
-        self._connect = None
-
-    def __enter__(self):
-        self._connect = self._db._engine.connect()
-        self._transaction = self._connect.begin()
-        return self._connect
-
-    def __exit__(self, exc_type, exc, tb):
-        try:
-            self._transaction.commit()
-        except Exception as e:
-            self._transaction.rollback()
-            raise e
-        finally:
-            self._connect.close()
-
-
-def get_tx(db: MysqlDB):
-    return Transaction(db)
-
-
 def search_sql(sql, query: dict, table):
     for k in query.keys():
         if type(query[k]) is not list:

@@ -1,6 +1,7 @@
+import abc
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.pool import QueuePool
-
+from easyapi.context import EasyApiContext
 
 def get_mysql_engine(user, password, host, port, database, pool_size=100, echo=False):
     print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
@@ -50,7 +51,39 @@ def get_postgre_engine(user, password, host, port, database, pool_size=100, echo
     return engine
 
 
-class MysqlDB(object):
+class AbcBaseDB(metaclass=abc.ABCMeta):
+    """
+    数据库的基类
+    """
+
+    @abc.abstractmethod
+    def connect(self):
+        """
+        链接
+        :return:
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def execute(self, sql, ctx: EasyApiContext = None):
+        """
+        查询
+        :param sql:
+        :param ctx:
+        :return:
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def __getitem__(self, name):
+        return self._tables[name]
+
+    @abc.abstractmethod
+    def __getattr__(self, item):
+        return self._tables[item]
+
+
+class MysqlDB(AbcBaseDB):
     """
     用于操作 mysql 的db对象
     """
@@ -80,7 +113,7 @@ class MysqlDB(object):
     def __getattr__(self, item):
         return self._tables[item]
 
-    def execute(self, sql, ctx: dict = None, *args, **kwargs, ):
+    def execute(self, sql, ctx: EasyApiContext = None, *args, **kwargs, ):
         """
         执行sql
         :param ctx:
@@ -99,12 +132,12 @@ class MysqlDB(object):
             return conn.execute(sql, *args, **kwargs)
 
 
-class PostgreDB(object):
+class PostgreDB(AbcBaseDB):
     """
     用于操作 postgredb 的db对象
     """
 
-    def __init__(self, user, password, host, port, database,echo=False):
+    def __init__(self, user, password, host, port, database, echo=False):
         self.user = user
         self.password = password
         self.host = host
@@ -114,7 +147,7 @@ class PostgreDB(object):
         self._sync_engine = None
         self._metadata = None
         self._tables = None
-        self.echo=echo
+        self.echo = echo
 
     def connect(self):
         self._engine = get_postgre_engine(user=self.user, password=self.password, host=self.host, port=self.port,
@@ -129,7 +162,7 @@ class PostgreDB(object):
     def __getattr__(self, item):
         return self._tables[item]
 
-    def execute(self, sql, ctx: dict = None, *args, **kwargs, ):
+    def execute(self, sql, ctx: EasyApiContext = None):
         """
         执行sql
         :param ctx:
@@ -140,9 +173,9 @@ class PostgreDB(object):
         """
         conn = None
         if ctx is not None:
-            conn = ctx.get("connection", None)
+            conn = ctx.tx
         if conn is None:
             with self._engine.connect(close_with_result=True) as conn:
-                return conn.execute(sql, *args, **kwargs)
+                return conn.execute(sql)
         else:
-            return conn.execute(sql, *args, **kwargs)
+            return conn.execute(sql)
