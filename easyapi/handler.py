@@ -59,7 +59,7 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
 
         body = flask.request.json
         try:
-            count = self.__controller__.update(ct=ctx, id=id, data=body)
+            count = self.__controller__.update(ctx=ctx, id=id, data=body)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         return flask.jsonify(code=200, count=count, msg='')
