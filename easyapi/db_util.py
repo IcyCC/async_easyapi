@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.pool import QueuePool
 from easyapi.context import EasyApiContext
 
+
 def get_mysql_engine(user, password, host, port, database, pool_size=100, echo=False):
     print('mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4'.format(
         user=user,
@@ -65,7 +66,7 @@ class AbcBaseDB(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def execute(self, sql, ctx: EasyApiContext = None):
+    def execute(self, ctx: EasyApiContext, sql, *args, **kwargs):
         """
         查询
         :param sql:
@@ -113,7 +114,7 @@ class MysqlDB(AbcBaseDB):
     def __getattr__(self, item):
         return self._tables[item]
 
-    def execute(self, sql, ctx: EasyApiContext = None, *args, **kwargs, ):
+    def execute(self, ctx: EasyApiContext, sql, *args, **kwargs):
         """
         执行sql
         :param ctx:
@@ -122,9 +123,7 @@ class MysqlDB(AbcBaseDB):
         :param kwargs:
         :return:
         """
-        conn = None
-        if ctx is not None:
-            conn = ctx.get("connection", None)
+        conn = ctx.tx
         if conn is None:
             with self._engine.connect(close_with_result=True) as conn:
                 return conn.execute(sql, *args, **kwargs)
@@ -162,7 +161,7 @@ class PostgreDB(AbcBaseDB):
     def __getattr__(self, item):
         return self._tables[item]
 
-    def execute(self, sql, ctx: EasyApiContext = None):
+    def execute(self, ctx: EasyApiContext, sql, *args, **kwargs):
         """
         执行sql
         :param ctx:
@@ -171,11 +170,9 @@ class PostgreDB(AbcBaseDB):
         :param kwargs:
         :return:
         """
-        conn = None
-        if ctx is not None:
-            conn = ctx.tx
+        conn = ctx.tx
         if conn is None:
             with self._engine.connect(close_with_result=True) as conn:
-                return conn.execute(sql)
+                return conn.execute(sql, *args, **kwargs)
         else:
-            return conn.execute(sql)
+            return conn.execute(sql, *args, **kwargs)

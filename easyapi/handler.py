@@ -2,6 +2,7 @@ import flask
 from flask import views
 from easyapi_tools.util import str2hump, DefaultUrlCondition
 from easyapi_tools.errors import BusinessError
+from easyapi import EasyApiContext
 
 
 class FlaskHandlerMeta(views.MethodViewType):
@@ -27,14 +28,15 @@ class FlaskHandlerMeta(views.MethodViewType):
 
 class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
 
-    def get(self, id: int, *args, **kwargs):
+    def get(self, id: int, **kwargs):
         """
         获取单个资源
         :param id:
         :return:
         """
+        ctx = kwargs.get('ctx')
         try:
-            data = self.__controller__.get(id=id, *args, **kwargs)
+            data = self.__controller__.get(ctx=ctx, id=id)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         if not data:
@@ -48,26 +50,29 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
             self.__resource__: data
         })
 
-    def put(self, id, *args, **kwargs):
+    def put(self, id, **kwargs):
         """
         新增的路由
         :return:
         """
+        ctx = kwargs.get('ctx')
+
         body = flask.request.json
         try:
-            count = self.__controller__.update(id=id, data=body, *args, **kwargs)
+            count = self.__controller__.update(ct=ctx, id=id, data=body)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         return flask.jsonify(code=200, count=count, msg='')
 
-    def delete(self, id, *args, **kwargs):
+    def delete(self, id, **kwargs):
         """
         删除的路由
         :param id:
         :return:
         """
+        ctx = kwargs.get('ctx')
         try:
-            count = self.__controller__.delete(id=id, *args, **kwargs)
+            count = self.__controller__.delete(ctx=ctx, id=id)
         except BusinessError as e:
             return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
         return flask.jsonify(code=200, count=count, msg='')
@@ -77,13 +82,14 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
         处理 查询和新增
         :return:
         """
+        ctx = kwargs.get('ctx')
         body = flask.request.json
         method = body.get("_method") or "POST"
 
         if method == 'GET':
             query, pager, sorter = self.__url_condition__.parser(body.get("_args"))
             try:
-                res, count = self.__controller__.query(query=query, pager=pager, sorter=sorter, *args, **kwargs)
+                res, count = self.__controller__.query(ctx=ctx, query=query, pager=pager, sorter=sorter)
 
             except BusinessError as e:
                 return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
@@ -97,7 +103,7 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
             if '_method' in body:
                 del body['_method']
             try:
-                _id = self.__controller__.insert(body, *args, **kwargs)
+                _id = self.__controller__.insert(ctx=ctx, body=body)
             except BusinessError as e:
                 return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
             return flask.jsonify(code=200, id=_id, msg='')
