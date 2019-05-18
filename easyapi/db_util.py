@@ -104,7 +104,7 @@ class PostgreDB(object):
     用于操作 postgredb 的db对象
     """
 
-    def __init__(self, user, password, host, port, database):
+    def __init__(self, user, password, host, port, database, echo=False):
         self.user = user
         self.password = password
         self.host = host
@@ -114,10 +114,11 @@ class PostgreDB(object):
         self._sync_engine = None
         self._metadata = None
         self._tables = None
+        self.echo = echo
 
     def connect(self):
         self._engine = get_postgre_engine(user=self.user, password=self.password, host=self.host, port=self.port,
-                                          database=self.database)
+                                          database=self.database, echo=self.echo)
         self._metadata = MetaData(self._engine)
         self._metadata.reflect(bind=self._engine)
         self._tables = self._metadata.tables
