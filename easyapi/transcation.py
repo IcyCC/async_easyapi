@@ -1,8 +1,6 @@
-from .db_util import MysqlDB
-
 
 class Transaction():
-    def __init__(self, db: MysqlDB):
+    def __init__(self, db):
         self._db = db
         self._transaction = None
         self._connect = None
@@ -22,5 +20,5 @@ class Transaction():
             self._connect.close()
 
 
-def get_tx(db: MysqlDB):
+def get_tx(db):
     return Transaction(db)

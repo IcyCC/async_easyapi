@@ -1,9 +1,10 @@
 import datetime
 import functools
+from sqlalchemy import Table
 from sqlalchemy.sql import select, func
 from easyapi_tools.util import str2hump, type_to_json
+from easyapi_comm.sql import search_sql, Pager, Sorter
 from easyapi.context import EasyApiContext
-from easyapi import search_sql, Pager, Sorter
 
 
 class DaoMetaClass(type):
@@ -15,7 +16,8 @@ class DaoMetaClass(type):
         """
 
         :param name:
-        :param bases:
+        :param bases:from easyapi import MysqlDB
+
         :param attrs:
         :return:
         """
@@ -25,6 +27,11 @@ class DaoMetaClass(type):
             raise NotImplementedError("Should have __db__ value.")
 
         attrs['__tablename__'] = attrs.get('__tablename__') or str2hump(name[:-3]) + 's'
+
+        table = attrs['__db__'][cls.__tablename__] # type: Table
+        attrs['__table__'] = table
+
+
         return type.__new__(cls, name, bases, attrs)
 
 
@@ -325,3 +332,4 @@ class BusinessBaseDao(BaseDao):
         if not unscoped:
             query['deleted_at'] = None
         return super().query(ctx=ctx, query=query, pager=pager, sorter=sorter)
+

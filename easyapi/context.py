@@ -3,7 +3,6 @@ from easyapi.transcation import Transaction
 
 
 class EasyApiContext:
-
     def __init__(self, tx: Transaction=None):
         self._tx = tx
         self._data = {}

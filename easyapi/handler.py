@@ -2,7 +2,7 @@ import flask
 from flask import views
 from easyapi_tools.util import str2hump, DefaultUrlCondition
 from easyapi_tools.errors import BusinessError
-from easyapi import EasyApiContext
+from easyapi.context import EasyApiContext
 
 
 class FlaskHandlerMeta(views.MethodViewType):
