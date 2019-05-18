@@ -2,6 +2,7 @@ import abc
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.pool import QueuePool
 from easyapi.context import EasyApiContext
+from easyapi.transcation import Transaction
 
 
 def get_mysql_engine(user, password, host, port, database, pool_size=100, echo=False):

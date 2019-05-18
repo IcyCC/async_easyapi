@@ -28,7 +28,7 @@ class DaoMetaClass(type):
 
         attrs['__tablename__'] = attrs.get('__tablename__') or str2hump(name[:-3]) + 's'
 
-        table = attrs['__db__'][cls.__tablename__]  # type: Table
+        table = attrs['__db__'][attrs['__tablename__']]  # type: Table
         attrs['__table__'] = table
 
         for c in table.c:
@@ -47,27 +47,31 @@ class DaoMetaClass(type):
 
 class BaseDao(metaclass=DaoMetaClass):
     @classmethod
-    def reformatter(cls, ctx: EasyApiContext, data: dict):
+    def reformatter(cls, ctx: EasyApiContext = None, data: dict = None):
         """
         将model数据转换成dao数据
         :param ctx:
         :param data:
         :return:
         """
+        if data is None:
+            return dict()
         return data
 
     @classmethod
-    def formatter(cls, ctx: EasyApiContext, data: dict):
+    def formatter(cls, ctx: EasyApiContext = None, data: dict = None):
         """
         将dao数据转换成model数据
         :param ctx:
         :param data:
         :return:
         """
+        if data is None:
+            return dict()
         return type_to_json(data)
 
     @classmethod
-    def get(cls, ctx: EasyApiContext, query: dict = None, sorter: Sorter = None):
+    def get(cls, ctx: EasyApiContext = None, query: dict = None, sorter: Sorter = None):
         """
         通用get查询
         :param ctx:
@@ -76,6 +80,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         if query is None:
             query = {}
         query = cls.reformatter(ctx=ctx, data=query)
@@ -98,7 +104,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return cls.formatter(ctx, data)
 
     @classmethod
-    def query(cls, ctx: EasyApiContext, query: Pager = None, pager: Pager = None, sorter: Sorter = None):
+    def query(cls, ctx: EasyApiContext = None, query: Pager = None, pager: Pager = None, sorter: Sorter = None):
         """
         通用query查询
         :param ctx:
@@ -109,6 +115,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         if query is None:
             query = {}
         query = cls.reformatter(ctx=ctx, data=query)
@@ -138,7 +146,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return list(map(functools.partial(cls.formatter, ctx=ctx), data))
 
     @classmethod
-    def insert(cls, ctx: EasyApiContext, data: dict = None):
+    def insert(cls, ctx: EasyApiContext = None, data: dict = None):
         """
         通用插入
         :param ctx:
@@ -147,6 +155,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         if data is None:
             return None
         table = cls.__db__[cls.__tablename__]
@@ -156,7 +166,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.inserted_primary_key[0]
 
     @classmethod
-    def count(cls, ctx: EasyApiContext, query: dict = None):
+    def count(cls, ctx: EasyApiContext = None, query: dict = None):
         """
         插入
         :param ctx:
@@ -165,6 +175,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         if query is None:
             query = {}
         query = cls.reformatter(ctx=ctx, data=query)
@@ -177,7 +189,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.scalar()
 
     @classmethod
-    def execute(cls, ctx: EasyApiContext, sql='SELECT 1', *args, **kwargs):
+    def execute(cls, ctx: EasyApiContext = None, sql='SELECT 1', *args, **kwargs):
         """
         直接执行sql
         :param ctx:
@@ -186,11 +198,13 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         res = cls.__db__.execute(ctx=ctx, sql=sql, *args, **kwargs)
         return res
 
     @classmethod
-    def update(cls, ctx: EasyApiContext, where_dict: dict = None, data: dict = None, *args, **kwargs):
+    def update(cls, ctx: EasyApiContext = None, where_dict: dict = None, data: dict = None, *args, **kwargs):
         """
         通用修改
         :param ctx:
@@ -200,6 +214,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param kwargs:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         if where_dict is None:
             where_dict = {}
         where_dict = cls.reformatter(ctx, where_dict)
@@ -215,7 +231,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return res.rowcount
 
     @classmethod
-    def delete(cls, ctx: EasyApiContext, where_dict: dict = None, *args, **kwargs):
+    def delete(cls, ctx: EasyApiContext = None, where_dict: dict = None, *args, **kwargs):
         """
         通用删除
         :param ctx:
@@ -223,6 +239,8 @@ class BaseDao(metaclass=DaoMetaClass):
         :param data:
         :return:
         """
+        if ctx is None:
+            ctx = EasyApiContext()
         if where_dict is None:
             where_dict = {}
         where_dict = cls.reformatter(ctx, where_dict)
@@ -238,7 +256,7 @@ class BaseDao(metaclass=DaoMetaClass):
 class BusinessBaseDao(BaseDao):
 
     @classmethod
-    def formatter(cls, ctx: EasyApiContext, data: dict):
+    def formatter(cls, ctx: EasyApiContext = None, data: dict = None):
         """
         将dao数据转换成model数据
         :param data:
@@ -247,7 +265,7 @@ class BusinessBaseDao(BaseDao):
         return super().formatter(ctx=ctx, data=data)
 
     @classmethod
-    def reformatter(cls, ctx: EasyApiContext, data: dict):
+    def reformatter(cls, ctx: EasyApiContext = None, data: dict = None):
         """
         将model数据转换成dao数据
         :param data:
@@ -257,7 +275,7 @@ class BusinessBaseDao(BaseDao):
         return super().reformatter(ctx=ctx, data=data)
 
     @classmethod
-    def update(cls, ctx: EasyApiContext, data: dict = None, where_dict: dict = None, unscoped=False,
+    def update(cls, ctx: EasyApiContext = None, data: dict = None, where_dict: dict = None, unscoped=False,
                modify_by: str = ''):
         """
         业务修改
@@ -277,7 +295,7 @@ class BusinessBaseDao(BaseDao):
         return super().update(ctx=ctx, where_dict=where_dict, data=data)
 
     @classmethod
-    def delete(cls, ctx: EasyApiContext, where_dict: dict = None, unscoped=False, modify_by: str = ''):
+    def delete(cls, ctx: EasyApiContext = None, where_dict: dict = None, unscoped=False, modify_by: str = ''):
         """
         业务删除
         :param ctx:
@@ -296,7 +314,7 @@ class BusinessBaseDao(BaseDao):
         return super().update(ctx=ctx, where_dict=where_dict, data=data)
 
     @classmethod
-    def insert(cls, ctx: EasyApiContext, data: dict = None, modify_by=''):
+    def insert(cls, ctx: EasyApiContext = None, data: dict = None, modify_by=''):
         """
         业务插入
         :param ctx:
@@ -311,7 +329,7 @@ class BusinessBaseDao(BaseDao):
         return super().insert(ctx=ctx, data=data)
 
     @classmethod
-    def get(cls, ctx: EasyApiContext, query=None, sorter: Sorter = None, unscoped=False):
+    def get(cls, ctx: EasyApiContext = None, query=None, sorter: Sorter = None, unscoped=False):
         """
         业务查询get
         :param ctx:
@@ -326,7 +344,7 @@ class BusinessBaseDao(BaseDao):
         return super().get(ctx=ctx, query=query)
 
     @classmethod
-    def query(cls, ctx: EasyApiContext, query: Pager = None, pager: Pager = None, sorter: Sorter = None,
+    def query(cls, ctx: EasyApiContext = None, query: Pager = None, pager: Pager = None, sorter: Sorter = None,
               unscoped=False):
         """
         业务查询query
