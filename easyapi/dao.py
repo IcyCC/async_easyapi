@@ -3,7 +3,7 @@ import functools
 from sqlalchemy import Table
 from sqlalchemy.sql import select, func
 from easyapi_tools.util import str2hump, type_to_json
-from easyapi_comm.sql import search_sql, Pager, Sorter
+from easyapi.sql import search_sql, Pager, Sorter
 from easyapi.context import EasyApiContext
 
 
@@ -28,9 +28,19 @@ class DaoMetaClass(type):
 
         attrs['__tablename__'] = attrs.get('__tablename__') or str2hump(name[:-3]) + 's'
 
-        table = attrs['__db__'][cls.__tablename__] # type: Table
+        table = attrs['__db__'][cls.__tablename__]  # type: Table
         attrs['__table__'] = table
 
+        for c in table.c:
+            attrs[c.name] = c.name
+            attrs['_lte_' + c.name] = '_lte_' + c.name
+            attrs['_gt_' + c.name] = '_gt_' + c.name
+
+            attrs['_lte_' + c.name] = '_lte_' + c.name
+            attrs['_lt_' + c.name] = '_lt_' + c.name
+
+            attrs['_like_' + c.name] = '_like_' + c.name
+            attrs['_in_' + c.name] = '_in_' + c.name
 
         return type.__new__(cls, name, bases, attrs)
 
@@ -301,7 +311,7 @@ class BusinessBaseDao(BaseDao):
         return super().insert(ctx=ctx, data=data)
 
     @classmethod
-    def get(cls, ctx: EasyApiContext, query=None, sorter:Sorter = None, unscoped=False):
+    def get(cls, ctx: EasyApiContext, query=None, sorter: Sorter = None, unscoped=False):
         """
         业务查询get
         :param ctx:
@@ -332,4 +342,3 @@ class BusinessBaseDao(BaseDao):
         if not unscoped:
             query['deleted_at'] = None
         return super().query(ctx=ctx, query=query, pager=pager, sorter=sorter)
-

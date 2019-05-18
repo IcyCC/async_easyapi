@@ -1,6 +1,6 @@
 from easyapi_tools.errors import BusinessError
 from easyapi import EasyApiContext
-from easyapi_comm.sql import Pager, Sorter
+from easyapi.sql import Pager, Sorter
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 
 
