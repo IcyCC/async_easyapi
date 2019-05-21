@@ -99,7 +99,7 @@ class BaseController(metaclass=ControllerMetaClass):
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         try:
-            res = cls.__dao__.insert(ctx=ctx, ata=data)
+            res = cls.__dao__.insert(ctx=ctx, data=data)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
         return res

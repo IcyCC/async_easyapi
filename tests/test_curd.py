@@ -21,7 +21,9 @@ def test_post_handler():
         'name': 'test',
         'note': 'test'
     })
+    print(req)
 
+    assert req.status_code == 200
     resp = req.json()
 
     assert resp['code'] == 200

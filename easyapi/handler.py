@@ -103,7 +103,7 @@ class FlaskBaseHandler(views.MethodView, metaclass=FlaskHandlerMeta):
             if '_method' in body:
                 del body['_method']
             try:
-                _id = self.__controller__.insert(ctx=ctx, body=body)
+                _id = self.__controller__.insert(ctx=ctx, data=body)
             except BusinessError as e:
                 return flask.jsonify(code=e.code, msg=e.err_info), e.http_code
             return flask.jsonify(code=200, id=_id, msg='')
