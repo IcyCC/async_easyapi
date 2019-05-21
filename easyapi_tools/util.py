@@ -1,7 +1,7 @@
 import abc
 from decimal import Decimal
 from datetime import datetime, date, time
-
+from easyapi.sql import Pager, Sorter
 
 def str2hump(listx):
     listy = listx[0]
@@ -53,18 +53,18 @@ class DefaultUrlCondition(AbcUrlCondition):
         :return:
         """
         query = {}
-        pager = {}
-        sorter = {}
+        pager = Pager
+        sorter = Sorter
         if args:
             for k, v in args.items():
                 if k == '_per_page':
-                    pager['_per_page'] = v
+                    pager.per_page = v
                 elif k == '_page':
-                    pager['_page'] = v
+                    pager.page = v
                 elif k == '_order_by':
-                    sorter['_order_by'] = v
+                    sorter.sort_by = v
                 elif k == '_desc':
-                    sorter['_desc'] = v
+                    sorter.desc = v
                 else:
                     query[k] = v
         return query, pager, sorter

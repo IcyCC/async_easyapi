@@ -81,7 +81,7 @@ class BaseController(metaclass=ControllerMetaClass):
             total = cls.__dao__.count(ctx=ctx, query=query)
         except (OperationalError, IntegrityError, DataError) as e:
             raise BusinessError(code=500, http_code=500, err_info=str(e))
-        return list(map(cls.formatter, res)), total
+        return list(map(lambda  d : cls.formatter(ctx=ctx, data=d), res)), total
 
     @classmethod
     def insert(cls, ctx: EasyApiContext = None, data: dict = None):

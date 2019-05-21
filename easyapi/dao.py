@@ -143,7 +143,7 @@ class BaseDao(metaclass=DaoMetaClass):
                 sql = sql.order_by(getattr(table.c, order_by, table.c.id))
         res = cls.__db__.execute(ctx=ctx, sql=sql)
         data = res.fetchall()
-        return list(map(functools.partial(cls.formatter, ctx=ctx), data))
+        return list(map(lambda  d : cls.formatter(ctx=ctx, data=d), data))
 
     @classmethod
     def insert(cls, ctx: EasyApiContext = None, data: dict = None):

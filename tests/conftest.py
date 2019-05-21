@@ -57,9 +57,8 @@ CREATE TABLE `users` (
         """)
 
         cursor.execute("""
-        INSERT INTO users (name, note) VALUES ('b', 'test');
+    truncate table users;
         """)
-
         print("新建数据库成功")
 
     yield conn
