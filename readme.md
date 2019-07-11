@@ -69,7 +69,7 @@ class UserController(async_easyapi.BaseController):
 bp = Blueprint(name='users', import_name='users', url_prefix='/users')
 
 
-class UserHandler(async_easyapi.BaseQuartHandler):
+class UserHandler(async_easyapi.FlaskBaseHandler):
     __controller__ = UserController
 
 
@@ -85,6 +85,13 @@ app.register_blueprint(bp)
 if __name__ == '__main__':
     app.run()
 
+
+```
+
+### 运行时字段检查
+
+```
+    user = dao.query(query={dao._like_name: 'test'})
 
 ```
 
