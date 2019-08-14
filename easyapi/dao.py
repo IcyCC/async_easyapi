@@ -104,7 +104,7 @@ class BaseDao(metaclass=DaoMetaClass):
         return cls.formatter(ctx, data)
 
     @classmethod
-    def query(cls, ctx: EasyApiContext = None, query: Pager = None, pager: Pager = None, sorter: Sorter = None):
+    def query(cls, ctx: EasyApiContext = None, query: dict = None, pager: Pager = None, sorter: Sorter = None):
         """
         通用query查询
         :param ctx:
@@ -329,7 +329,7 @@ class BusinessBaseDao(BaseDao):
         return super().insert(ctx=ctx, data=data)
 
     @classmethod
-    def get(cls, ctx: EasyApiContext = None, query=None, sorter: Sorter = None, unscoped=False):
+    def get(cls, ctx: EasyApiContext = None, query:dict=None, sorter: Sorter = None, unscoped=False):
         """
         业务查询get
         :param ctx:
@@ -344,7 +344,7 @@ class BusinessBaseDao(BaseDao):
         return super().get(ctx=ctx, query=query)
 
     @classmethod
-    def query(cls, ctx: EasyApiContext = None, query: Pager = None, pager: Pager = None, sorter: Sorter = None,
+    def query(cls, ctx: EasyApiContext = None, query: dict = None, pager: Pager = None, sorter: Sorter = None,
               unscoped=False):
         """
         业务查询query
