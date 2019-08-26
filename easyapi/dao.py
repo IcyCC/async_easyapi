@@ -33,7 +33,7 @@ class DaoMetaClass(type):
 
         for c in table.c:
             attrs[c.name] = c.name
-            attrs['_lte_' + c.name] = '_lte_' + c.name
+            attrs['_gte_' + c.name] = '_gte_' + c.name
             attrs['_gt_' + c.name] = '_gt_' + c.name
 
             attrs['_lte_' + c.name] = '_lte_' + c.name
