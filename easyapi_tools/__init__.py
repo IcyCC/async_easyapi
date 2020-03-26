@@ -2,7 +2,7 @@ import easyapi
 import sqlalchemy.exc
 
 
-def add_business_field(mysql_db:easyapi.MysqlDB):
+def add_business_field(mysql_db:easyapi.AbcBaseDB):
     """
     增加业务字段
     :param mysql_db:
@@ -11,14 +11,14 @@ def add_business_field(mysql_db:easyapi.MysqlDB):
     tables = []
     mysql_db.connect()
 
-    res = mysql_db.execute("show tables;")
+    res = mysql_db._metadata.tables
 
-    for r in res:
-        tables.append(r[0])
+    for r in res.keys():
+        tables.append(r)
 
     def ignore_err_execute(sql):
         try:
-            res = mysql_db.execute(sql)
+            res = mysql_db.execute(ctx=easyapi.EasyApiContext(), sql=sql)
             print("执行 sql {}".format(res))
         except sqlalchemy.exc.InternalError as e:
             print("错误{}".format(e))

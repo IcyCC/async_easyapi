@@ -53,31 +53,6 @@ def get_postgre_engine(user, password, host, port, database, pool_size=100, echo
     return engine
 
 
-def get_postgre_engine(user, password, host, port, database, pool_size=100, echo=False):
-    print('postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}'.format(
-        user=user,
-        password=password,
-        host=host,  # your host
-        port=port,
-        database=database,
-    ))
-    engine = create_engine(
-        'postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}'.format(
-            user=user,
-            password=password,
-            host=host,  # your host
-            port=port,
-            database=database,
-        ),
-        pool_size=pool_size,
-        pool_recycle=60,
-        pool_pre_ping=True,
-        echo=echo
-    )
-    return engine
-
-
-
 def get_sqlite_engine(database, pool_size=100, echo=False):
     print('sqlite:///{}'.format(
        database
@@ -86,9 +61,6 @@ def get_sqlite_engine(database, pool_size=100, echo=False):
     'sqlite:///{}'.format(
         database
         ),
-        pool_size=pool_size,
-        pool_recycle=60,
-        pool_pre_ping=True,
         echo=echo
     )
     return engine
@@ -233,6 +205,7 @@ class SqliteDB(AbcBaseDB):
         self._sync_engine = None
         self._metadata = None
         self._tables = None
+        self._connection = None
         self.echo = echo
 
     def connect(self):
@@ -240,7 +213,7 @@ class SqliteDB(AbcBaseDB):
         self._metadata = MetaData(self._engine)
         self._metadata.reflect(bind=self._engine)
         self._tables = self._metadata.tables
-
+        self._connection = self._engine.connect()
     def __getitem__(self, name):
         return self._tables[name]
 
@@ -256,10 +229,5 @@ class SqliteDB(AbcBaseDB):
         :param kwargs:
         :return:
         """
-        conn = ctx.tx
-        if conn is None:
-            with self._engine.connect(close_with_result=True) as conn:
-                return conn.execute(sql, *args, **kwargs)
-        else:
-            return conn.execute(sql, *args, **kwargs)
+        return self._connection.execute(sql, *args, **kwargs)
 

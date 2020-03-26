@@ -56,7 +56,7 @@ class BaseDao(metaclass=DaoMetaClass):
         """
         if data is None:
             return dict()
-        return data
+        return data.copy()
 
     @classmethod
     def formatter(cls, ctx: EasyApiContext = None, data: dict = None):

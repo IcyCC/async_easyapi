@@ -22,7 +22,7 @@ class BaseController(metaclass=ControllerMetaClass):
         :param data:
         :return:
         """
-        return data
+        return data.copy()
 
     @classmethod
     def reformatter(cls, ctx: EasyApiContext, data: dict):
@@ -31,7 +31,7 @@ class BaseController(metaclass=ControllerMetaClass):
         :param data:
         :return:
         """
-        return data
+        return data.copy()
 
     @classmethod
     def get(cls, id: int, ctx: EasyApiContext = None):
@@ -94,6 +94,7 @@ class BaseController(metaclass=ControllerMetaClass):
             ctx = EasyApiContext()
         if data is None:
             data = {}
+        data = cls.reformatter(ctx=ctx, data=data)
         if cls.__validator__ is not None:
             err = cls.__validator__.validate(data)
             if err is not None:
@@ -120,12 +121,12 @@ class BaseController(metaclass=ControllerMetaClass):
             query = {}
         if data is None:
             data = {}
-
         if cls.__validator__ is not None:
             err = cls.__validator__.validate(data)
             if err is not None:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id, **query}
+        data = cls.reformatter(ctx=ctx, data=data)
         try:
             res = cls.__dao__.update(ctx=ctx, where_dict=query, data=data)
         except (OperationalError, IntegrityError, DataError) as e:
