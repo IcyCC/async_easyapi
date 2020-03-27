@@ -41,6 +41,7 @@ class DaoMetaClass(type):
 
             attrs['_like_' + c.name] = '_like_' + c.name
             attrs['_in_' + c.name] = '_in_' + c.name
+            attrs['_search_'+c.name] = '_search_'+c.name
 
         return type.__new__(cls, name, bases, attrs)
 
