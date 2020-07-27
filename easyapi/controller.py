@@ -95,9 +95,9 @@ class BaseController(metaclass=ControllerMetaClass):
         if data is None:
             data = {}
         data = cls.reformatter(ctx=ctx, data=data)
-        if cls.__validator__ is not None:
+        if cls.__validator__ :
             err = cls.__validator__.validate(data)
-            if err is not None:
+            if err:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         try:
             res = cls.__dao__.insert(ctx=ctx, data=data)
@@ -121,9 +121,9 @@ class BaseController(metaclass=ControllerMetaClass):
             query = {}
         if data is None:
             data = {}
-        if cls.__validator__ is not None:
+        if cls.__validator__:
             err = cls.__validator__.validate(data)
-            if err is not None:
+            if err:
                 raise BusinessError(code=500, http_code=200, err_info=err)
         query = {"id": id, **query}
         data = cls.reformatter(ctx=ctx, data=data)
